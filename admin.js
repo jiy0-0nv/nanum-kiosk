@@ -149,7 +149,7 @@ function AdminApp() {
       <div className="bg-[#1428A0] text-white p-5 flex justify-between items-center">
         <div>
           <span className="text-[10px] text-blue-200 font-bold uppercase tracking-widest">ADMIN PANEL</span>
-          <h1 className="text-base font-black">나눔역 점수 관리</h1>
+          <h1 className="text-base font-black">나눔 키오스크 점수 관리</h1>
         </div>
         <button 
           onClick={handleLogout}
