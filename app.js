@@ -1,4 +1,4 @@
-const { useState, useMemo, useEffect } = React;
+const { useState, useMemo, useEffect, useRef } = React;
 
 // --- 아이콘 SVG 직접 삽입 ---
 const Trophy = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z"/></svg>;
@@ -19,6 +19,13 @@ const style = `
   .animate-train {
     animation: bobble 1.5s ease-in-out infinite;
   }
+  @keyframes heartFall {
+    0% { transform: translateY(-10vh) rotate(0deg) scale(0.5); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; }
+  }
+  .animate-heart-fall {
+    animation: heartFall linear forwards;
+  }
 `;
 
 const INITIAL_TEAMS = [
@@ -37,6 +44,10 @@ function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminForm, setAdminForm] = useState({ name: '', teamId: 'B', score: '' });
   const [mounted, setMounted] = useState(false);
+  
+  // 이스터에그 상태 관리
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const pressTimer = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -95,9 +106,51 @@ function App() {
     }
   };
 
+  // --- 이스터에그 터치 이벤트 핸들러 ---
+  const handlePressStart = () => {
+    pressTimer.current = setTimeout(() => {
+      triggerEasterEgg();
+    }, 800); // 0.8초 동안 누르고 있으면 발동
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+    }
+  };
+
+  const triggerEasterEgg = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(200); // 태깅 시 진동 피드백
+    }
+    setShowEasterEgg(true);
+    setTimeout(() => {
+      setShowEasterEgg(false);
+    }, 3000); // 3초 후 애니메이션 종료
+  };
+
   return (
     <div className="w-screen max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
+      
+      {/* 이스터에그 하트 비 애니메이션 오버레이 */}
+      {showEasterEgg && (
+        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+          {[...Array(25)].map((_, i) => (
+            <Heart 
+              key={i} 
+              className="absolute text-pink-500 fill-current animate-heart-fall" 
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDuration: `${Math.random() * 2 + 1.5}s`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                width: `${Math.random() * 16 + 16}px`,
+                height: `${Math.random() * 16 + 16}px`,
+              }} 
+            />
+          ))}
+        </div>
+      )}
   
       {/* 1. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
@@ -106,7 +159,15 @@ function App() {
             <ArrowLeft className="text-white w-5 h-5" />
           </div>
           
-          <div className="flex-1 bg-white flex flex-col items-center justify-center px-2">
+          <div 
+            className="flex-1 bg-white flex flex-col items-center justify-center px-2 cursor-pointer select-none"
+            onTouchStart={handlePressStart}
+            onTouchEnd={handlePressEnd}
+            onMouseDown={handlePressStart}
+            onMouseUp={handlePressEnd}
+            onMouseLeave={handlePressEnd}
+            onContextMenu={(e) => e.preventDefault()} // 모바일에서 길게 누를 때 메뉴 뜨는 것 방지
+          >
             <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG NANUM KIOSK</span>
             <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
               삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
