@@ -203,14 +203,15 @@ function App() {
   const stopTrain = async () => {
     clearInterval(gameIntervalRef.current);
 
-    // 정중앙(40 ~ 60) 완벽, (25~75) 굿, 그 외 보통
-    let reward = 0.1; // 1천원
+    // [수정됨] 정확한 구간 판단 및 보상 매칭
+    let reward = 0.1; // 일반 정차 (+1,000원)
     let text = "안전 정차 완료! (+1,000원)";
-    if (trainPos >= 42 && trainPos <= 58) {
-      reward = 0.3; // 3천원
+
+    if (trainPos >= 40 && trainPos <= 60) {
+      reward = 0.3; // 퍼펙트 정차 (+3,000원)
       text = "🎯 퍼펙트 정차! (+3,000원)";
-    } else if (trainPos >= 30 && trainPos <= 70) {
-      reward = 0.2; // 2천원
+    } else if (trainPos >= 25 && trainPos <= 75) {
+      reward = 0.2; // 나이스 정차 (+2,000원)
       text = "✨ 나이스 정차! (+2,000원)";
     }
 
@@ -343,13 +344,10 @@ function App() {
 
             {gameStep === 'playing' && (
               <div className="w-full flex flex-col items-center my-6">
-                {/* 트랙 및 플랫폼 */}
                 <div className="relative w-full h-12 bg-gray-100 rounded-full border border-gray-200 overflow-hidden flex items-center">
-                  {/* 정중앙 퍼펙트 구역 (40% ~ 60%) */}
                   <div className="absolute left-[40%] w-[20%] h-full bg-pink-100/80 border-x-2 border-pink-400 flex items-center justify-center">
                     <span className="text-[10px] text-pink-500 font-bold">정차역</span>
                   </div>
-                  {/* 움직이는 열차 */}
                   <div className="absolute top-1/2 -translate-y-1/2 transition-all" style={{ left: `${trainPos}%` }}>
                     <div className="w-8 h-8 bg-[#1428A0] rounded-full shadow-md flex items-center justify-center text-white -ml-4">
                       <Train className="w-4 h-4" />
@@ -380,7 +378,6 @@ function App() {
       {/* 3. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
         <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
-          {/* 왼쪽 화살표: 사원증 태깅 이스터에그 */}
           <div onClick={() => setShowEasterEgg(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowLeft className="text-white w-5 h-5" />
           </div>
@@ -392,7 +389,6 @@ function App() {
             </h1>
           </div>
           
-          {/* 오른쪽 화살표: 나눔 열차 정차 미니게임 */}
           <div onClick={() => setShowGameModal(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowRight className="text-white w-5 h-5" />
           </div>
@@ -422,8 +418,6 @@ function App() {
 
       {/* 5. 메인 콘텐츠 */}
       <main className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-        
-        {/* === 팀 랭킹 === */}
         {activeTab === 'team' && (
           <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col">
             <div className="bg-blue-50/30 p-6 flex flex-col items-center justify-center border-b border-gray-100">
@@ -474,7 +468,6 @@ function App() {
           </div>
         )}
 
-        {/* === 개인 랭킹 === */}
         {activeTab === 'individual' && (
           <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col p-2">
             {individualRanking.length === 0 ? (
@@ -498,7 +491,6 @@ function App() {
           </div>
         )}
 
-        {/* === 부스 안내 === */}
         {activeTab === 'info' && (
           <>
             <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
