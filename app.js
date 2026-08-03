@@ -1,6 +1,6 @@
 const { useState, useMemo, useEffect } = React;
 
-// --- Lucide 아이콘 SVG 직접 삽입 (CDN 환경 오류 방지 및 디자인 유지) ---
+// --- 아이콘 SVG (디자인 유지) ---
 const Trophy = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z"/></svg>;
 const Users = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const Info = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
@@ -10,7 +10,7 @@ const Settings = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 const Train = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
 const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>;
 
-// --- 커스텀 애니메이션 ---
+// --- 기차 애니메이션 ---
 const style = `
   @keyframes bobble {
     0%, 100% { transform: translateY(0); }
@@ -21,7 +21,6 @@ const style = `
   }
 `;
 
-// --- 초기 팀 데이터 (7개 팀) ---
 const INITIAL_TEAMS = [
   { id: 'B', name: 'B팀', bgClass: 'bg-blue-500', textClass: 'text-blue-500' },
   { id: 'C', name: 'C팀', bgClass: 'bg-green-500', textClass: 'text-green-500' },
@@ -34,7 +33,7 @@ const INITIAL_TEAMS = [
 
 function App() {
   const [activeTab, setActiveTab] = useState('team'); 
-  const [players, setPlayers] = useState([]); // Supabase 연동을 위해 빈 배열로 시작
+  const [players, setPlayers] = useState([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminForm, setAdminForm] = useState({ name: '', teamId: 'B', score: '' });
   const [mounted, setMounted] = useState(false);
@@ -44,10 +43,9 @@ function App() {
     fetchPlayers();
   }, []);
 
-  // Supabase 데이터 불러오기
   const fetchPlayers = async () => {
-    if (typeof supabaseClient === 'undefined') return;
-    const { data, error } = await supabaseClient
+    if (!window.supabaseClient) return;
+    const { data, error } = await window.supabaseClient
       .from('players')
       .select('*')
       .order('score', { ascending: false });
@@ -59,7 +57,6 @@ function App() {
     }
   };
 
-  // --- 데이터 정제 (순위 계산) ---
   const individualRanking = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score);
   }, [players]);
@@ -67,7 +64,7 @@ function App() {
   const teamRanking = useMemo(() => {
     const teamScores = INITIAL_TEAMS.map(team => {
       const totalScore = players
-        .filter(p => p.team_id === team.id || p.teamId === team.id) // 호환성 유지
+        .filter(p => p.team_id === team.id || p.teamId === team.id)
         .reduce((sum, p) => sum + p.score, 0);
       return { ...team, totalScore };
     });
@@ -79,22 +76,20 @@ function App() {
     return max > 0 ? max : 100;
   }, [teamRanking]);
 
-  // 총 모금액 계산
   const totalRaisedAmount = useMemo(() => {
     return players.reduce((sum, player) => sum + player.score, 0);
   }, [players]);
 
-  // --- 관리자 기능: 점수 등록 (Supabase 연동) ---
   const handleAddScore = async (e) => {
     e.preventDefault();
     if (!adminForm.name || !adminForm.score) return;
 
-    if (typeof supabaseClient === 'undefined') {
+    if (!window.supabaseClient) {
       alert('데이터베이스가 연결되지 않았습니다.');
       return;
     }
 
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from('players')
       .insert([{ 
         name: adminForm.name, 
@@ -107,20 +102,19 @@ function App() {
     } else {
       setAdminForm({ name: '', teamId: 'B', score: '' });
       setIsAdminOpen(false);
-      fetchPlayers(); // 데이터 갱신
+      fetchPlayers(); 
     }
   };
 
   return (
-    // 최상단 컨테이너에 overflow-x-hidden 및 w-full 적용하여 가로폭 확장 완벽 차단
-    <div className="min-h-screen bg-gray-100 flex justify-center font-sans overflow-x-hidden w-full">
+    <div className="flex justify-center min-h-screen bg-gray-100">
       <style>{style}</style>
       
-      <div className="w-full max-w-md w-[100vw] sm:w-full bg-white shadow-xl flex flex-col relative overflow-x-hidden">
+      {/* 레이아웃 폭발 방지를 위해 w-full, max-w-md, overflow-x-hidden 고정 */}
+      <div className="w-full max-w-md bg-white shadow-xl flex flex-col relative overflow-x-hidden">
         
-        {/* 1. 헤더 */}
         <header className="bg-white pt-6 pb-4 px-4 flex flex-col items-center border-b-8 border-[#1428A0]">
-          <div className="w-full rounded-full border-4 border-[#1428A0] py-3 px-4 flex justify-between items-center relative overflow-hidden bg-white shadow-md max-w-full">
+          <div className="w-full rounded-full border-4 border-[#1428A0] py-3 px-4 flex justify-between items-center relative overflow-hidden bg-white shadow-md">
             <div className="absolute left-0 top-0 bottom-0 w-8 bg-[#1428A0] flex items-center justify-center rounded-l-full">
               <ArrowRight className="text-white transform rotate-180 w-4 h-4" />
             </div>
@@ -128,7 +122,7 @@ function App() {
               <ArrowRight className="text-white w-4 h-4" />
             </div>
             
-            <div className="flex-1 flex flex-col items-center z-10 px-6 max-w-full">
+            <div className="flex-1 flex flex-col items-center z-10 px-6">
               <span className="text-xs text-gray-500 font-bold mb-1 tracking-wider whitespace-nowrap">SAMSUNG KIOSK</span>
               <h1 className="text-xl font-extrabold text-[#1428A0] flex items-center gap-1 whitespace-nowrap">
                 삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
@@ -141,7 +135,6 @@ function App() {
           </div>
         </header>
 
-        {/* 2. 내비게이션 바 */}
         <nav className="flex bg-gray-50 border-b border-gray-200 p-2 gap-2">
           <button
             onClick={() => setActiveTab('team')}
@@ -172,25 +165,11 @@ function App() {
           </button>
         </nav>
 
-        {/* 3. 메인 콘텐츠 */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           
-          {/* 팀 랭킹 (라이트 테마 적용) */}
           {activeTab === 'team' && (
             <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm relative overflow-hidden space-y-6 font-mono pb-8">
               
-              {/* 총 모금액 표시 (라이트 테마) */}
-                  [안내] 현재 나눔 랭킹이 실시간으로 업데이트 중입니다. 일상 속 나눔에 동참해 주셔서 감사합니다.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* 팀 랭킹 */}
-          {activeTab === 'team' && (
-            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm relative overflow-hidden space-y-6 font-mono pb-8">
-              
-              {/* 총 모금액 표시 */}
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 flex flex-col items-center justify-center mb-4">
                 <span className="text-[#1428A0] text-sm font-bold mb-1">현재까지 모인 따뜻한 마음</span>
                 <div className="text-3xl font-extrabold flex items-center gap-2 text-gray-800">
@@ -200,7 +179,6 @@ function App() {
                 </div>
               </div>
 
-              {/* 팀별 레이싱 트랙 */}
               <div className="space-y-8 mt-6">
                 {teamRanking.map((team, index) => {
                   const progress = mounted ? Math.max(5, (team.totalScore / maxTeamScore) * 85) : 0;
@@ -251,7 +229,6 @@ function App() {
             </div>
           )}
 
-          {/* 개인 랭킹 */}
           {activeTab === 'individual' && (
             <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm relative overflow-hidden font-mono">
               <div className="space-y-3">
@@ -284,7 +261,6 @@ function App() {
             </div>
           )}
 
-          {/* 부스 안내 */}
           {activeTab === 'info' && (
             <div className="space-y-6">
               <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden">
@@ -348,12 +324,10 @@ function App() {
                   </div>
                 </div>
               </div>
-
             </div>
           )}
         </main>
 
-        {/* 4. 푸터 */}
         <footer className="bg-white border-t border-gray-200 p-4 text-center relative">
           <p className="text-xs text-gray-500 font-medium">여러분의 작은 참여가 아이들에게 큰 희망이 됩니다.</p>
           <p className="text-[10px] text-gray-400 mt-1">© SAMSUNG NANUM KIOSK</p>
@@ -366,7 +340,6 @@ function App() {
           </button>
         </footer>
 
-        {/* 관리자 모달 */}
         {isAdminOpen && (
           <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl">
@@ -423,7 +396,6 @@ function App() {
   );
 }
 
-// CDN 환경에서는 ReactDOM.render 실행
 if (typeof ReactDOM !== 'undefined') {
   ReactDOM.render(<App />, document.getElementById('root'));
-            }
+                  }
