@@ -1,6 +1,6 @@
 const { useState, useMemo, useEffect } = React;
 
-// --- 아이콘 SVG 직접 삽입 (CDN 환경 완벽 호환) ---
+// --- 아이콘 SVG 직접 삽입 ---
 const Trophy = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z"/></svg>;
 const Users = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const Info = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
@@ -11,7 +11,6 @@ const Settings = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 const Train = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
 const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>;
 
-// --- 기차 애니메이션 (레이아웃 이탈 완벽 차단) ---
 const style = `
   @keyframes bobble {
     0%, 100% { transform: translateY(-50%); }
@@ -23,13 +22,13 @@ const style = `
 `;
 
 const INITIAL_TEAMS = [
-  { id: 'B', name: 'B팀', bgClass: 'bg-blue-500', textClass: 'text-blue-500' },
-  { id: 'C', name: 'C팀', bgClass: 'bg-green-500', textClass: 'text-green-500' },
-  { id: 'D', name: 'D팀', bgClass: 'bg-red-500', textClass: 'text-red-500' },
-  { id: 'E', name: 'E팀', bgClass: 'bg-yellow-500', textClass: 'text-yellow-500' },
-  { id: 'J', name: 'J팀', bgClass: 'bg-purple-500', textClass: 'text-purple-500' },
-  { id: 'K', name: 'K팀', bgClass: 'bg-pink-500', textClass: 'text-pink-500' },
-  { id: 'L', name: 'L팀', bgClass: 'bg-teal-500', textClass: 'text-teal-500' },
+  { id: 'B', name: 'B호선', bgClass: 'bg-blue-500', textClass: 'text-blue-500' },
+  { id: 'C', name: 'C호선', bgClass: 'bg-green-500', textClass: 'text-green-500' },
+  { id: 'D', name: 'D호선', bgClass: 'bg-red-500', textClass: 'text-red-500' },
+  { id: 'E', name: 'E호선', bgClass: 'bg-yellow-500', textClass: 'text-yellow-500' },
+  { id: 'J', name: 'J호선', bgClass: 'bg-purple-500', textClass: 'text-purple-500' },
+  { id: 'K', name: 'K호선', bgClass: 'bg-pink-500', textClass: 'text-pink-500' },
+  { id: 'L', name: 'L호선', bgClass: 'bg-teal-500', textClass: 'text-teal-500' },
 ];
 
 function App() {
@@ -97,7 +96,7 @@ function App() {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
+    <div className="w-full max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
       {/* 1. 헤더 */}
@@ -147,7 +146,6 @@ function App() {
         {/* === 팀 랭킹 === */}
         {activeTab === 'team' && (
           <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col">
-            
             <div className="bg-blue-50/30 p-6 flex flex-col items-center justify-center border-b border-gray-100">
               <span className="text-[#1428A0] text-sm font-bold mb-2">현재까지 모인 따뜻한 마음</span>
               <div className="flex items-center gap-2">
@@ -160,7 +158,6 @@ function App() {
             <div className="p-5 flex flex-col gap-8">
               {teamRanking.map((team, index) => {
                 const progress = mounted ? Math.max(5, Math.min(95, (team.totalScore / maxTeamScore) * 100)) : 5;
-                
                 return (
                   <div key={team.id} className="w-full">
                     <div className="flex justify-between items-center mb-3">
@@ -172,12 +169,10 @@ function App() {
                         {team.totalScore.toLocaleString()} <span className="text-xs text-gray-500 font-medium">만원</span>
                       </div>
                     </div>
-
                     <div className="relative mt-4">
                       <div className="absolute right-0 -top-5">
                         <Flag className="w-4 h-4 text-gray-300" />
                       </div>
-                      
                       <div className="h-3 w-full bg-gray-100 rounded-full flex items-center px-2 justify-between border border-gray-200/50">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -185,9 +180,7 @@ function App() {
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       </div>
-
                       <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
-
                       <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `calc(${progress}% - 14px)` }}>
                         <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
                           <Train className="w-4 h-4" />
@@ -248,7 +241,6 @@ function App() {
               </div>
               <p className="text-[10px] text-gray-400 text-center ml-1">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
             </div>
-
             <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 text-sm flex items-center gap-1.5 mb-5">
                 <Train className="w-4 h-4 text-gray-500" /> 나눔 투어 노선도
@@ -330,6 +322,6 @@ function App() {
 }
 
 if (typeof ReactDOM !== 'undefined') {
-  ReactDOM.render(<App />, document.getElementById('root'));
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
 }
-
