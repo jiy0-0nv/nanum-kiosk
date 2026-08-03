@@ -127,11 +127,11 @@ function App() {
       {/* 2. 내비게이션 바 */}
       <nav className="flex bg-white shadow-sm z-10 border-b-2 border-gray-100">
         <button onClick={() => setActiveTab('team')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'team' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
-          <Users className="w-5 h-5" />
+          <Trophy className="w-5 h-5" />
           <span className="text-xs font-bold">팀 랭킹</span>
         </button>
         <button onClick={() => setActiveTab('individual')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'individual' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
-          <Trophy className="w-5 h-5" />
+          <Users className="w-5 h-5" />
           <span className="text-xs font-bold">개인 랭킹</span>
         </button>
         <button onClick={() => setActiveTab('info')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'info' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
@@ -285,38 +285,6 @@ function App() {
           <Settings className="w-4 h-4" />
         </button>
       </footer>
-
-      {/* 관리자 모달 */}
-      {isAdminOpen && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-[320px] p-5 shadow-2xl">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-sm font-bold text-gray-800">🛠 스태프 전용 점수 등록</h2>
-              <button onClick={() => setIsAdminOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">✕</button>
-            </div>
-            
-            <form onSubmit={handleAddScore} className="flex flex-col gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">소속 팀</label>
-                <select className="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-colors" value={adminForm.teamId} onChange={(e) => setAdminForm({...adminForm, teamId: e.target.value})}>
-                  {INITIAL_TEAMS.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">참가자 이름</label>
-                <input type="text" required className="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-colors" placeholder="예: 홍길동" value={adminForm.name} onChange={(e) => setAdminForm({...adminForm, name: e.target.value})} />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">획득 금액 (만원)</label>
-                <input type="number" required className="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-colors" placeholder="예: 50" value={adminForm.score} onChange={(e) => setAdminForm({...adminForm, score: e.target.value})} />
-              </div>
-              <button type="submit" className="w-full bg-[#1428A0] text-white font-bold rounded-lg py-3 mt-2 shadow-md">
-                등록하기
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
