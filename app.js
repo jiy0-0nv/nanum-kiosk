@@ -96,9 +96,9 @@ function App() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
+    <div className="w-screen max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
-      
+  
       {/* 1. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
         <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
