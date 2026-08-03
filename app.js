@@ -45,22 +45,28 @@ function App() {
   const [adminForm, setAdminForm] = useState({ name: '', teamId: 'B', score: '' });
   const [mounted, setMounted] = useState(false);
   
-  // --- 이스터에그 상태 ---
+  // --- 왼쪽 이스터에그 (사원증 태깅) 상태 ---
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [cardPos, setCardPos] = useState({ y: 0 });
   const [tagSuccess, setTagSuccess] = useState(false);
-  const [alreadyDonated, setAlreadyDonated] = useState(false); // 중복 참여 체크용
+  const [alreadyDonated, setAlreadyDonated] = useState(false);
   const startY = useRef(0);
-
-  // 이스터에그용 사원증 폼 상태
   const [eggName, setEggName] = useState('');
   const [eggTeam, setEggTeam] = useState('B');
+
+  // --- 오른쪽 미니게임 (나눔 열차 정차 게임) 상태 ---
+  const [showGameModal, setShowGameModal] = useState(false);
+  const [gameStep, setGameStep] = useState('ready'); // 'ready' | 'playing' | 'result'
+  const [gameName, setGameName] = useState('');
+  const [gameTeam, setGameTeam] = useState('B');
+  const [trainPos, setTrainPos] = useState(0); // 0 ~ 100 퍼센트
+  const [gameResult, setGameResult] = useState(null); // { text, score, reward }
+  const gameIntervalRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
     fetchPlayers();
-    // 접속 시 이전에 태깅한 기록이 있는지 확인
     if (localStorage.getItem('kiosk_tagged') === 'true') {
       setAlreadyDonated(true);
     }
@@ -76,27 +82,20 @@ function App() {
     if (!error && data) setPlayers(data);
   };
 
-    const individualRanking = useMemo(() => {
+  const individualRanking = useMemo(() => {
     const mergedPlayers = {};
-
     players.forEach(player => {
-      // '(태깅)' 꼬리표를 제거하여 원본 이름 추출
-      const baseName = player.name.replace('(태깅)', '').trim();
-
+      const baseName = player.name.replace('(태깅)', '').replace('(미니게임)', '').trim();
       if (!mergedPlayers[baseName]) {
-        // 처음 등장하는 이름이면 객체 생성
         mergedPlayers[baseName] = {
-          id: player.id, // 고유 key 부여
-          name: baseName, // (태깅)이 제거된 깔끔한 이름
+          id: player.id,
+          name: baseName,
           teamId: player.team_id || player.teamId,
           score: 0
         };
       }
-      // 같은 이름이면 점수 누적 합산 (기존 점수 + 이스터에그 0.1점 등)
       mergedPlayers[baseName].score += player.score;
     });
-
-    // 객체를 다시 배열로 변환 후 점수 내림차순 정렬
     return Object.values(mergedPlayers).sort((a, b) => b.score - a.score);
   }, [players]);
 
@@ -119,7 +118,6 @@ function App() {
     return players.reduce((sum, player) => sum + player.score, 0);
   }, [players]);
 
-  // --- 어드민 폼 (기존 유지) ---
   const handleAddScore = async (e) => {
     e.preventDefault();
     if (!adminForm.name || !adminForm.score) return;
@@ -135,7 +133,7 @@ function App() {
     }
   };
 
-  // --- 드래그 앤 드롭 로직 ---
+  // --- 왼쪽 이스터에그 드래그 로직 ---
   const handleDragStart = (e) => {
     if (tagSuccess) return;
     setIsDragging(true);
@@ -146,53 +144,37 @@ function App() {
     if (!isDragging || tagSuccess) return;
     const currentY = e.touches ? e.touches[0].clientY : e.clientY;
     const deltaY = currentY - startY.current;
-    
-    if (deltaY < 0) {
-      setCardPos({ y: deltaY });
-    }
+    if (deltaY < 0) setCardPos({ y: deltaY });
   };
 
   const handleDragEnd = () => {
     if (!isDragging || tagSuccess) return;
     setIsDragging(false);
-    
-    if (cardPos.y < -180) {
-      handleTagSuccess();
-    } else {
-      setCardPos({ y: 0 });
-    }
+    if (cardPos.y < -180) handleTagSuccess();
+    else setCardPos({ y: 0 });
   };
 
   const handleTagSuccess = async () => {
-    // 이름이 비어있으면 경고 후 복귀
     if (!eggName.trim()) {
       alert("이름을 입력해주세요!");
       setCardPos({ y: 0 });
       return;
     }
-
     setTagSuccess(true);
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-    // DB 통신 로직 (중복 참여가 아닐 때만 1,000원 추가)
-    if (!alreadyDonated) {
-      if (window.supabaseClient) {
-        // 1,000원은 랭킹 단위로 0.1만원이므로 0.1 삽입
-        const { error } = await window.supabaseClient.from('players').insert([{
-          name: `${eggName}(태깅)`,
-          team_id: eggTeam,
-          score: 0.1 
-        }]);
-
-        if (!error) {
-          localStorage.setItem('kiosk_tagged', 'true');
-          setAlreadyDonated(true);
-          fetchPlayers(); // 데이터베이스 반영 후 즉시 랭킹 새로고침
-        }
+    if (!alreadyDonated && window.supabaseClient) {
+      const { error } = await window.supabaseClient.from('players').insert([{
+        name: `${eggName}(태깅)`,
+        team_id: eggTeam,
+        score: 0.1 
+      }]);
+      if (!error) {
+        localStorage.setItem('kiosk_tagged', 'true');
+        setAlreadyDonated(true);
+        fetchPlayers();
       }
     }
-    
-    // 3.5초 후 자동 종료
     setTimeout(() => {
       setShowEasterEgg(false);
       setTagSuccess(false);
@@ -200,16 +182,58 @@ function App() {
     }, 3500);
   };
 
-  // 폼 입력 시 드래그 이벤트가 발동하지 않도록 이벤트 버블링 차단
-  const stopPropagation = (e) => {
-    e.stopPropagation();
+  // --- 오른쪽 미니게임 (타이밍 정차) 로직 ---
+  const startGame = () => {
+    if (!gameName.trim()) {
+      alert("이름을 입력해주세요!");
+      return;
+    }
+    setGameStep('playing');
+    let direction = 1;
+    let pos = 0;
+
+    gameIntervalRef.current = setInterval(() => {
+      pos += direction * 3;
+      if (pos >= 100) { pos = 100; direction = -1; }
+      if (pos <= 0) { pos = 0; direction = 1; }
+      setTrainPos(pos);
+    }, 20);
   };
+
+  const stopTrain = async () => {
+    clearInterval(gameIntervalRef.current);
+
+    // 정중앙(40 ~ 60) 완벽, (25~75) 굿, 그 외 보통
+    let reward = 0.1; // 1천원
+    let text = "안전 정차 완료! (+1,000원)";
+    if (trainPos >= 42 && trainPos <= 58) {
+      reward = 0.3; // 3천원
+      text = "🎯 퍼펙트 정차! (+3,000원)";
+    } else if (trainPos >= 30 && trainPos <= 70) {
+      reward = 0.2; // 2천원
+      text = "✨ 나이스 정차! (+2,000원)";
+    }
+
+    setGameResult({ text, reward });
+    setGameStep('result');
+
+    if (window.supabaseClient) {
+      await window.supabaseClient.from('players').insert([{
+        name: `${gameName}(미니게임)`,
+        team_id: gameTeam,
+        score: reward
+      }]);
+      fetchPlayers();
+    }
+  };
+
+  const stopPropagation = (e) => e.stopPropagation();
 
   return (
     <div className="w-screen max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 이스터에그 드래그 모달 */}
+      {/* 1. 왼쪽 이스터에그 드래그 모달 */}
       {showEasterEgg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center py-20 touch-none">
           <button 
@@ -218,15 +242,11 @@ function App() {
           >
             ✕
           </button>
-
-          {/* 중앙 리더기 영역 */}
           <div className={`mt-1 w-64 h-56 rounded-3xl border-4 flex flex-col items-center justify-center transition-all duration-300 ${tagSuccess ? 'border-green-400 bg-green-400/20 shadow-[0_0_60px_rgba(74,222,128,0.5)]' : 'border-blue-400/50 bg-blue-400/10 border-dashed'}`}>
             {tagSuccess ? (
                <>
                  <span className="text-5xl mb-3 animate-bounce">🎉</span>
-                 <span className="text-green-400 font-bold text-xl tracking-wide">
-                   {alreadyDonated ? '이미 참여하셨습니다!' : '기부 완료!'}
-                 </span>
+                 <span className="text-green-400 font-bold text-xl tracking-wide">{alreadyDonated ? '이미 참여하셨습니다!' : '기부 완료!'}</span>
                  {!alreadyDonated && <span className="text-green-300/80 text-xs mt-2">+ 1,000원</span>}
                </>
             ) : (
@@ -239,7 +259,6 @@ function App() {
             )}
           </div>
 
-          {/* 하단 사원증 UI (드래그 가능 + 입력 폼) */}
           {!tagSuccess ? (
             <div
               className="mt-auto w-56 bg-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col items-center p-5 cursor-grab active:cursor-grabbing"
@@ -257,42 +276,24 @@ function App() {
               onMouseLeave={handleDragEnd}
             >
               <div className="w-12 h-3 bg-gray-200 rounded-full mb-3"></div>
-              
-              <div className="w-full text-left w-full flex flex-col gap-2 mb-4 mt-2">
+              <div className="w-full text-left flex flex-col gap-2 mb-4 mt-2">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 ml-1">소속</label>
-                  <select 
-                    value={eggTeam}
-                    onChange={(e) => setEggTeam(e.target.value)}
-                    onMouseDown={stopPropagation}
-                    onTouchStart={stopPropagation}
-                    className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]"
-                  >
+                  <select value={eggTeam} onChange={(e) => setEggTeam(e.target.value)} onMouseDown={stopPropagation} onTouchStart={stopPropagation} className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]">
                     {INITIAL_TEAMS.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 ml-1">이름</label>
-                  <input 
-                    type="text" 
-                    placeholder="이름 입력"
-                    value={eggName}
-                    onChange={(e) => setEggName(e.target.value)}
-                    onMouseDown={stopPropagation}
-                    onTouchStart={stopPropagation}
-                    className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]"
-                    maxLength={10}
-                  />
+                  <input type="text" placeholder="이름 입력" value={eggName} onChange={(e) => setEggName(e.target.value)} onMouseDown={stopPropagation} onTouchStart={stopPropagation} className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]" maxLength={10} />
                 </div>
               </div>
-
               <span className="font-black text-lg text-[#1428A0] tracking-wider mt-auto">SAMSUNG</span>
               <div className="w-full h-6 bg-[#1428A0] rounded-lg mt-2 flex items-center justify-center overflow-hidden relative">
                  <div className="absolute inset-0 bg-white/20 w-1/2 skew-x-12 translate-x-10"></div>
               </div>
             </div>
           ) : (
-            /* 성공 영수증 */
             <div className="mt-auto w-64 bg-white rounded-t-lg border-t border-x border-gray-200 p-5 flex flex-col items-center animate-receipt">
               <div className="w-full border-b border-dashed border-gray-300 pb-3 mb-3 text-center">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">NANUM RECEIPT</span>
@@ -307,15 +308,80 @@ function App() {
           )}
         </div>
       )}
+
+      {/* 2. 오른쪽 미니게임 모달 (나눔 열차 정차 게임) */}
+      {showGameModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <button 
+            onClick={() => { setShowGameModal(false); setGameStep('ready'); clearInterval(gameIntervalRef.current); }} 
+            className="absolute top-6 right-6 text-white text-2xl font-bold opacity-70 hover:opacity-100"
+          >
+            ✕
+          </button>
+
+          <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center">
+            <h2 className="text-base font-black text-[#1428A0] mb-1">🚆 나눔 열차 정차 미니게임</h2>
+            <p className="text-xs text-gray-400 mb-6 text-center">플랫폼 중앙에 열차를 정확히 멈춰 세우세요!</p>
+
+            {gameStep === 'ready' && (
+              <div className="w-full flex flex-col gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">소속 호선</label>
+                  <select value={gameTeam} onChange={(e) => setGameTeam(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-[#1428A0]">
+                    {INITIAL_TEAMS.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">참가자 이름</label>
+                  <input type="text" placeholder="이름을 입력하세요" value={gameName} onChange={(e) => setGameName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-[#1428A0]" maxLength={10} />
+                </div>
+                <button onClick={startGame} className="w-full bg-[#1428A0] text-white font-bold rounded-xl py-3 text-xs shadow-md mt-3 hover:bg-blue-900 transition-colors">
+                  게임 시작하기
+                </button>
+              </div>
+            )}
+
+            {gameStep === 'playing' && (
+              <div className="w-full flex flex-col items-center my-6">
+                {/* 트랙 및 플랫폼 */}
+                <div className="relative w-full h-12 bg-gray-100 rounded-full border border-gray-200 overflow-hidden flex items-center">
+                  {/* 정중앙 퍼펙트 구역 (40% ~ 60%) */}
+                  <div className="absolute left-[40%] w-[20%] h-full bg-pink-100/80 border-x-2 border-pink-400 flex items-center justify-center">
+                    <span className="text-[10px] text-pink-500 font-bold">정차역</span>
+                  </div>
+                  {/* 움직이는 열차 */}
+                  <div className="absolute top-1/2 -translate-y-1/2 transition-all" style={{ left: `${trainPos}%` }}>
+                    <div className="w-8 h-8 bg-[#1428A0] rounded-full shadow-md flex items-center justify-center text-white -ml-4">
+                      <Train className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+
+                <button onClick={stopTrain} className="w-full bg-pink-500 text-white font-black rounded-xl py-4 text-sm shadow-lg mt-8 active:scale-95 transition-transform animate-pulse">
+                  정 차 ! 🛑
+                </button>
+              </div>
+            )}
+
+            {gameStep === 'result' && gameResult && (
+              <div className="w-full flex flex-col items-center my-4 animate-receipt">
+                <span className="text-4xl mb-2">🎉</span>
+                <h3 className="font-black text-gray-800 text-base mb-1">{gameResult.text}</h3>
+                <p className="text-xs text-gray-500 mb-6">{gameName}님의 기부가 성공적으로 반영되었습니다!</p>
+                <button onClick={() => { setShowGameModal(false); setGameStep('ready'); }} className="w-full bg-gray-100 text-gray-700 font-bold rounded-xl py-3 text-xs hover:bg-gray-200 transition-colors">
+                  확인
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
   
-      {/* 1. 헤더 */}
+      {/* 3. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
         <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
-          {/* 이스터에그 발동 버튼 (좌측 화살표) */}
-          <div 
-            className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors"
-            onClick={() => setShowEasterEgg(true)}
-          >
+          {/* 왼쪽 화살표: 사원증 태깅 이스터에그 */}
+          <div onClick={() => setShowEasterEgg(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowLeft className="text-white w-5 h-5" />
           </div>
           
@@ -326,18 +392,19 @@ function App() {
             </h1>
           </div>
           
-          <div className="w-14 flex items-center justify-center shrink-0">
+          {/* 오른쪽 화살표: 나눔 열차 정차 미니게임 */}
+          <div onClick={() => setShowGameModal(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowRight className="text-white w-5 h-5" />
           </div>
         </div>
         
         <div className="flex justify-between mt-3 px-3 text-[10px] font-bold text-gray-400">
-          <span>← 나눔의 시작</span>
-          <span>아이들의 미래 →</span>
+          <span>← 사원증 태깅</span>
+          <span>미니게임역 →</span>
         </div>
       </header>
 
-      {/* 2. 내비게이션 바 */}
+      {/* 4. 내비게이션 바 */}
       <nav className="flex bg-white shadow-sm z-10 border-b-2 border-gray-100">
         <button onClick={() => setActiveTab('team')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'team' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
           <Trophy className="w-5 h-5" />
@@ -353,7 +420,7 @@ function App() {
         </button>
       </nav>
 
-      {/* 3. 메인 콘텐츠 */}
+      {/* 5. 메인 콘텐츠 */}
       <main className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         
         {/* === 팀 랭킹 === */}
@@ -486,7 +553,7 @@ function App() {
         )}
       </main>
 
-      {/* 4. 푸터 */}
+      {/* 6. 푸터 */}
       <footer className="bg-white border-t border-gray-200 py-4 px-4 text-center relative mt-auto">
         <p className="text-xs text-gray-500 font-medium">여러분의 작은 참여가 아이들에게 큰 희망이 됩니다.</p>
         <p className="text-[10px] text-gray-400 mt-1">© 2026. SAMSUNG VALUE PROGRAM. TEAM E</p>
