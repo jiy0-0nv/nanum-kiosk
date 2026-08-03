@@ -1,6 +1,6 @@
 const { useState, useMemo, useEffect, useRef } = React;
 
-// --- 아이콘 SVG 직접 삽입 ---
+// --- 아이콘 SVG (기존과 동일) ---
 const Trophy = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z"/></svg>;
 const Users = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const Info = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
@@ -42,18 +42,28 @@ function App() {
   const [activeTab, setActiveTab] = useState('team'); 
   const [players, setPlayers] = useState([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [adminForm, setAdminForm] = useState({ name: '', teamId: 'B', score: '' });
   const [mounted, setMounted] = useState(false);
   
-  // --- 이스터에그 (드래그 앤 드롭) 상태 관리 ---
+  // --- 이스터에그 상태 ---
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [cardPos, setCardPos] = useState({ y: 0 });
   const [tagSuccess, setTagSuccess] = useState(false);
+  const [alreadyDonated, setAlreadyDonated] = useState(false); // 중복 참여 체크용
   const startY = useRef(0);
+
+  // 이스터에그용 사원증 폼 상태
+  const [eggName, setEggName] = useState('');
+  const [eggTeam, setEggTeam] = useState('B');
 
   useEffect(() => {
     setMounted(true);
     fetchPlayers();
+    // 접속 시 이전에 태깅한 기록이 있는지 확인
+    if (localStorage.getItem('kiosk_tagged') === 'true') {
+      setAlreadyDonated(true);
+    }
   }, []);
 
   const fetchPlayers = async () => {
@@ -63,9 +73,7 @@ function App() {
       .select('*')
       .order('score', { ascending: false });
     
-    if (!error && data) {
-      setPlayers(data);
-    }
+    if (!error && data) setPlayers(data);
   };
 
   const individualRanking = useMemo(() => {
@@ -91,11 +99,26 @@ function App() {
     return players.reduce((sum, player) => sum + player.score, 0);
   }, [players]);
 
-  // --- 이스터에그 드래그 앤 드롭 로직 ---
+  // --- 어드민 폼 (기존 유지) ---
+  const handleAddScore = async (e) => {
+    e.preventDefault();
+    if (!adminForm.name || !adminForm.score) return;
+    if (!window.supabaseClient) return;
+    const { error } = await window.supabaseClient.from('players').insert([{ 
+      name: adminForm.name, team_id: adminForm.teamId, score: Number(adminForm.score) 
+    }]);
+
+    if (!error) {
+      setAdminForm({ name: '', teamId: 'B', score: '' });
+      setIsAdminOpen(false);
+      fetchPlayers(); 
+    }
+  };
+
+  // --- 드래그 앤 드롭 로직 ---
   const handleDragStart = (e) => {
     if (tagSuccess) return;
     setIsDragging(true);
-    // 마우스와 터치 이벤트 분기 처리
     startY.current = e.touches ? e.touches[0].clientY : e.clientY;
   };
 
@@ -104,7 +127,6 @@ function App() {
     const currentY = e.touches ? e.touches[0].clientY : e.clientY;
     const deltaY = currentY - startY.current;
     
-    // 위로(음수) 끌어올릴 때만 이동을 허용
     if (deltaY < 0) {
       setCardPos({ y: deltaY });
     }
@@ -114,38 +136,62 @@ function App() {
     if (!isDragging || tagSuccess) return;
     setIsDragging(false);
     
-    // y축으로 -180px 이상 끌어올렸다면 태깅 성공으로 간주
     if (cardPos.y < -180) {
       handleTagSuccess();
     } else {
-      // 실패 시 원래 자리로 고무줄처럼 복귀
       setCardPos({ y: 0 });
     }
   };
 
-  const handleTagSuccess = () => {
+  const handleTagSuccess = async () => {
+    // 이름이 비어있으면 경고 후 복귀
+    if (!eggName.trim()) {
+      alert("이름을 입력해주세요!");
+      setCardPos({ y: 0 });
+      return;
+    }
+
     setTagSuccess(true);
-    // 태그 성공 시 진동 (모바일 환경 지원 시)
-    if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+    // DB 통신 로직 (중복 참여가 아닐 때만 1,000원 추가)
+    if (!alreadyDonated) {
+      if (window.supabaseClient) {
+        // 1,000원은 랭킹 단위로 0.1만원이므로 0.1 삽입
+        const { error } = await window.supabaseClient.from('players').insert([{
+          name: `${eggName}(태깅)`,
+          team_id: eggTeam,
+          score: 0.1 
+        }]);
+
+        if (!error) {
+          localStorage.setItem('kiosk_tagged', 'true');
+          setAlreadyDonated(true);
+          fetchPlayers(); // 데이터베이스 반영 후 즉시 랭킹 새로고침
+        }
+      }
     }
     
-    // 3초 후 이스터에그 창 자동 종료 및 상태 초기화
+    // 3.5초 후 자동 종료
     setTimeout(() => {
       setShowEasterEgg(false);
       setTagSuccess(false);
       setCardPos({ y: 0 });
-    }, 3000);
+    }, 3500);
+  };
+
+  // 폼 입력 시 드래그 이벤트가 발동하지 않도록 이벤트 버블링 차단
+  const stopPropagation = (e) => {
+    e.stopPropagation();
   };
 
   return (
     <div className="w-screen max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 이스터에그 전체화면 오버레이 (드래그 태깅) */}
+      {/* 이스터에그 드래그 모달 */}
       {showEasterEgg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center py-20 touch-none">
-          {/* 닫기 버튼 */}
           <button 
             onClick={() => { setShowEasterEgg(false); setCardPos({y:0}); setTagSuccess(false); }} 
             className="absolute top-6 right-6 text-white text-2xl font-bold opacity-70 hover:opacity-100"
@@ -154,12 +200,14 @@ function App() {
           </button>
 
           {/* 중앙 리더기 영역 */}
-          <div className={`mt-10 w-64 h-64 rounded-3xl border-4 flex flex-col items-center justify-center transition-all duration-300 ${tagSuccess ? 'border-green-400 bg-green-400/20 shadow-[0_0_60px_rgba(74,222,128,0.5)]' : 'border-blue-400/50 bg-blue-400/10 border-dashed'}`}>
+          <div className={`mt-1 w-64 h-56 rounded-3xl border-4 flex flex-col items-center justify-center transition-all duration-300 ${tagSuccess ? 'border-green-400 bg-green-400/20 shadow-[0_0_60px_rgba(74,222,128,0.5)]' : 'border-blue-400/50 bg-blue-400/10 border-dashed'}`}>
             {tagSuccess ? (
                <>
                  <span className="text-5xl mb-3 animate-bounce">🎉</span>
-                 <span className="text-green-400 font-bold text-xl tracking-wide">기부 완료!</span>
-                 <span className="text-green-300/80 text-xs mt-2">+ 1,000원</span>
+                 <span className="text-green-400 font-bold text-xl tracking-wide">
+                   {alreadyDonated ? '이미 참여하셨습니다!' : '기부 완료!'}
+                 </span>
+                 {!alreadyDonated && <span className="text-green-300/80 text-xs mt-2">+ 1,000원</span>}
                </>
             ) : (
                <>
@@ -171,14 +219,14 @@ function App() {
             )}
           </div>
 
-          {/* 하단 사원증 UI (드래그 가능) */}
+          {/* 하단 사원증 UI (드래그 가능 + 입력 폼) */}
           {!tagSuccess ? (
             <div
-              className="mt-auto w-48 h-72 bg-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col items-center p-5 cursor-grab active:cursor-grabbing"
+              className="mt-auto w-56 bg-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col items-center p-5 cursor-grab active:cursor-grabbing"
               style={{
-                transform: `translateY(${cardPos.y}px) rotate(${cardPos.y * 0.02}deg)`, // 드래그 시 약간 기울어지는 디테일
+                transform: `translateY(${cardPos.y}px) rotate(${cardPos.y * 0.015}deg)`,
                 transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                touchAction: 'none' // 모바일 브라우저 스크롤 방지
+                touchAction: 'none'
               }}
               onTouchStart={handleDragStart}
               onTouchMove={handleDragMove}
@@ -188,28 +236,52 @@ function App() {
               onMouseUp={handleDragEnd}
               onMouseLeave={handleDragEnd}
             >
-              <div className="w-12 h-3 bg-gray-200 rounded-full mb-6"></div> {/* 카드 상단 홀 */}
-              <div className="w-24 h-24 bg-gray-100 rounded-full mb-4 overflow-hidden border-2 border-gray-100">
-                <svg className="w-full h-full text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                </svg>
+              <div className="w-12 h-3 bg-gray-200 rounded-full mb-3"></div>
+              
+              <div className="w-full text-left w-full flex flex-col gap-2 mb-4 mt-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 ml-1">소속</label>
+                  <select 
+                    value={eggTeam}
+                    onChange={(e) => setEggTeam(e.target.value)}
+                    onMouseDown={stopPropagation}
+                    onTouchStart={stopPropagation}
+                    className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]"
+                  >
+                    {INITIAL_TEAMS.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 ml-1">이름</label>
+                  <input 
+                    type="text" 
+                    placeholder="이름 입력"
+                    value={eggName}
+                    onChange={(e) => setEggName(e.target.value)}
+                    onMouseDown={stopPropagation}
+                    onTouchStart={stopPropagation}
+                    className="w-full bg-gray-50 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-[#1428A0]"
+                    maxLength={10}
+                  />
+                </div>
               </div>
-              <span className="font-black text-lg text-[#1428A0]">SAMSUNG</span>
-              <span className="text-xs font-bold text-gray-500 mt-1 mb-auto">삼성 임직원</span>
-              <div className="w-full h-8 bg-[#1428A0] rounded-lg mt-2 flex items-center justify-center overflow-hidden relative">
+
+              <span className="font-black text-lg text-[#1428A0] tracking-wider mt-auto">SAMSUNG</span>
+              <div className="w-full h-6 bg-[#1428A0] rounded-lg mt-2 flex items-center justify-center overflow-hidden relative">
                  <div className="absolute inset-0 bg-white/20 w-1/2 skew-x-12 translate-x-10"></div>
               </div>
             </div>
           ) : (
-            /* 성공 시 나타나는 영수증 연출 */
-            <div className="mt-auto w-56 bg-white rounded-t-lg border-t border-x border-gray-200 p-5 flex flex-col items-center animate-receipt">
+            /* 성공 영수증 */
+            <div className="mt-auto w-64 bg-white rounded-t-lg border-t border-x border-gray-200 p-5 flex flex-col items-center animate-receipt">
               <div className="w-full border-b border-dashed border-gray-300 pb-3 mb-3 text-center">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">NANUM RECEIPT</span>
               </div>
-              <p className="text-xs text-gray-600 mb-1">아이들의 미래를 위한</p>
-              <p className="text-sm font-black text-[#1428A0]">따뜻한 마음이 도착했습니다.</p>
-              <div className="w-full bg-blue-50 text-[#1428A0] font-bold text-center py-2 rounded mt-4">
-                ₩ 1,000
+              <p className="text-xs text-gray-600 mb-1">{eggName}님의 마음이</p>
+              <p className="text-sm font-black text-[#1428A0]">아이들의 미래를 밝힙니다.</p>
+              <div className="w-full bg-blue-50 text-[#1428A0] font-bold text-center py-2 rounded mt-4 flex items-center justify-center gap-2">
+                <span>₩ 1,000</span>
+                <Heart className="w-3 h-3 text-pink-500 fill-current" />
               </div>
             </div>
           )}
@@ -219,7 +291,7 @@ function App() {
       {/* 1. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
         <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
-          {/* 이스터에그 트리거 버튼 */}
+          {/* 이스터에그 발동 버튼 (좌측 화살표) */}
           <div 
             className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors"
             onClick={() => setShowEasterEgg(true)}
@@ -398,13 +470,6 @@ function App() {
       <footer className="bg-white border-t border-gray-200 py-4 px-4 text-center relative mt-auto">
         <p className="text-xs text-gray-500 font-medium">여러분의 작은 참여가 아이들에게 큰 희망이 됩니다.</p>
         <p className="text-[10px] text-gray-400 mt-1">© 2026. SAMSUNG VALUE PROGRAM. TEAM E</p>
-        
-        <button 
-          onClick={() => setIsAdminOpen(true)}
-          className="absolute bottom-3 right-3 p-2 text-gray-300 hover:text-gray-500 transition-colors"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
       </footer>
     </div>
   );
