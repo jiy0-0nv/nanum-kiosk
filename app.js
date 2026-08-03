@@ -97,19 +97,16 @@ function App() {
   };
 
   return (
-    // 전체 배경은 회색으로 설정하여 흰색 카드 컴포넌트가 눈에 띄게 설계
     <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 1. 헤더 (요청하신 알약 형태의 디자인 완벽 반영) */}
+      {/* 1. 헤더 */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
         <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
-          {/* 왼쪽 화살표 */}
           <div className="w-14 flex items-center justify-center shrink-0">
             <ArrowLeft className="text-white w-5 h-5" />
           </div>
           
-          {/* 중앙 텍스트 영역 (흰색 배경) */}
           <div className="flex-1 bg-white flex flex-col items-center justify-center px-2">
             <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG KIOSK</span>
             <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
@@ -117,7 +114,6 @@ function App() {
             </h1>
           </div>
           
-          {/* 오른쪽 화살표 */}
           <div className="w-14 flex items-center justify-center shrink-0">
             <ArrowRight className="text-white w-5 h-5" />
           </div>
@@ -145,14 +141,13 @@ function App() {
         </button>
       </nav>
 
-      {/* 3. 메인 콘텐츠 (모든 탭이 꽉 찬 단일/통일된 카드 구조를 사용) */}
+      {/* 3. 메인 콘텐츠 */}
       <main className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         
         {/* === 팀 랭킹 === */}
         {activeTab === 'team' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col">
+          <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col">
             
-            {/* 총 모금액 표시 (카드의 헤더 역할) */}
             <div className="bg-blue-50/30 p-6 flex flex-col items-center justify-center border-b border-gray-100">
               <span className="text-[#1428A0] text-sm font-bold mb-2">현재까지 모인 따뜻한 마음</span>
               <div className="flex items-center gap-2">
@@ -162,14 +157,12 @@ function App() {
               </div>
             </div>
 
-            {/* 팀별 레이싱 트랙 리스트 */}
             <div className="p-5 flex flex-col gap-8">
               {teamRanking.map((team, index) => {
                 const progress = mounted ? Math.max(5, Math.min(95, (team.totalScore / maxTeamScore) * 100)) : 5;
                 
                 return (
                   <div key={team.id} className="w-full">
-                    {/* 팀명 및 점수 */}
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg w-6 text-center">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-sm">{index + 1}</span>}</span>
@@ -180,13 +173,11 @@ function App() {
                       </div>
                     </div>
 
-                    {/* 트랙 영역 */}
                     <div className="relative mt-4">
                       <div className="absolute right-0 -top-5">
                         <Flag className="w-4 h-4 text-gray-300" />
                       </div>
                       
-                      {/* 회색 바탕 트랙 */}
                       <div className="h-3 w-full bg-gray-100 rounded-full flex items-center px-2 justify-between border border-gray-200/50">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -195,10 +186,8 @@ function App() {
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       </div>
 
-                      {/* 색상 채워지는 트랙 */}
                       <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
 
-                      {/* 기차 애니메이션 (위치 보정 반영) */}
                       <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `calc(${progress}% - 14px)` }}>
                         <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
                           <Train className="w-4 h-4" />
@@ -214,7 +203,7 @@ function App() {
 
         {/* === 개인 랭킹 === */}
         {activeTab === 'individual' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col p-2">
+          <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col p-2">
             {individualRanking.length === 0 ? (
               <div className="text-center text-gray-400 py-10 text-sm">등록된 기록이 없습니다.</div>
             ) : (
@@ -239,7 +228,7 @@ function App() {
         {/* === 부스 안내 === */}
         {activeTab === 'info' && (
           <>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+            <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
               <div className="absolute left-0 top-0 w-1.5 h-full bg-[#1428A0]"></div>
               <h3 className="font-bold text-[#1428A0] text-sm flex items-center gap-1.5 mb-3 ml-1">
                 <Heart className="w-4 h-4 text-pink-500 fill-current" /> 삼성 나눔 키오스크란?
@@ -260,7 +249,7 @@ function App() {
               <p className="text-[10px] text-gray-400 text-center ml-1">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 text-sm flex items-center gap-1.5 mb-5">
                 <Train className="w-4 h-4 text-gray-500" /> 나눔 투어 노선도
               </h3>
@@ -342,4 +331,5 @@ function App() {
 
 if (typeof ReactDOM !== 'undefined') {
   ReactDOM.render(<App />, document.getElementById('root'));
-          }
+}
+
