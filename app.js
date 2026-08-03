@@ -76,8 +76,28 @@ function App() {
     if (!error && data) setPlayers(data);
   };
 
-  const individualRanking = useMemo(() => {
-    return [...players].sort((a, b) => b.score - a.score);
+    const individualRanking = useMemo(() => {
+    const mergedPlayers = {};
+
+    players.forEach(player => {
+      // '(태깅)' 꼬리표를 제거하여 원본 이름 추출
+      const baseName = player.name.replace('(태깅)', '').trim();
+
+      if (!mergedPlayers[baseName]) {
+        // 처음 등장하는 이름이면 객체 생성
+        mergedPlayers[baseName] = {
+          id: player.id, // 고유 key 부여
+          name: baseName, // (태깅)이 제거된 깔끔한 이름
+          teamId: player.team_id || player.teamId,
+          score: 0
+        };
+      }
+      // 같은 이름이면 점수 누적 합산 (기존 점수 + 이스터에그 0.1점 등)
+      mergedPlayers[baseName].score += player.score;
+    });
+
+    // 객체를 다시 배열로 변환 후 점수 내림차순 정렬
+    return Object.values(mergedPlayers).sort((a, b) => b.score - a.score);
   }, [players]);
 
   const teamRanking = useMemo(() => {
