@@ -107,7 +107,7 @@ function App() {
           </div>
           
           <div className="flex-1 bg-white flex flex-col items-center justify-center px-2">
-            <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG KIOSK</span>
+            <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG NANUM KIOSK</span>
             <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
               삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
             </h1>
@@ -276,7 +276,7 @@ function App() {
       {/* 4. 푸터 */}
       <footer className="bg-white border-t border-gray-200 py-4 px-4 text-center relative mt-auto">
         <p className="text-xs text-gray-500 font-medium">여러분의 작은 참여가 아이들에게 큰 희망이 됩니다.</p>
-        <p className="text-[10px] text-gray-400 mt-1">© SAMSUNG NANUM KIOSK</p>
+        <p className="text-[10px] text-gray-400 mt-1">© 2026. SAMSUNG VALUE PROGRAM. TEAM E</p>
         
         <button 
           onClick={() => setIsAdminOpen(true)}
