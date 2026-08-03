@@ -80,13 +80,11 @@ function App() {
   };
 
   return (
-    // 전체 컨테이너를 화면 정중앙에 고정하고 최대 너비(max-w-md)를 확실히 제한합니다.
-    <div className="w-full max-w-md mx-auto bg-white shadow-xl flex flex-col relative min-h-screen overflow-x-hidden">
+    <div className="w-full max-w-md mx-auto bg-white shadow-xl flex flex-col relative min-h-screen overflow-x-hidden box-border">
       
       {/* 1. 헤더 */}
-      <header className="bg-white pt-6 pb-4 px-4 flex flex-col items-center border-b-8 border-[#1428A0] w-full">
-        {/* 헤더 내부 컨테이너도 너비 100%로 고정 */}
-        <div className="w-full rounded-full border-4 border-[#1428A0] py-3 px-4 flex justify-between items-center relative overflow-hidden bg-white shadow-md">
+      <header className="bg-white pt-6 pb-4 px-4 flex flex-col items-center border-b-8 border-[#1428A0] w-full box-border">
+        <div className="w-full rounded-full border-4 border-[#1428A0] py-3 px-4 flex justify-between items-center relative overflow-hidden bg-white shadow-md box-border">
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-[#1428A0] flex items-center justify-center rounded-l-full">
             <span className="text-white text-xs">◀</span>
           </div>
@@ -94,7 +92,7 @@ function App() {
             <span className="text-white text-xs">▶</span>
           </div>
           
-          <div className="flex-1 flex flex-col items-center z-10 px-6 w-full">
+          <div className="flex-1 flex flex-col items-center z-10 px-6 w-full overflow-hidden">
             <span className="text-xs text-gray-500 font-bold mb-1 tracking-wider whitespace-nowrap">SAMSUNG KIOSK</span>
             <h1 className="text-xl font-extrabold text-[#1428A0] flex items-center gap-1 whitespace-nowrap">
               삼성 나눔역 💖
@@ -108,7 +106,7 @@ function App() {
       </header>
 
       {/* 2. 내비게이션 바 */}
-      <nav className="flex bg-gray-50 border-b border-gray-200 p-2 gap-2 w-full">
+      <nav className="flex bg-gray-50 border-b border-gray-200 p-2 gap-2 w-full box-border">
         <button
           onClick={() => setActiveTab('team')}
           className={`flex-1 py-3 px-2 rounded-lg font-bold text-sm flex flex-col items-center transition-colors ${
@@ -139,37 +137,38 @@ function App() {
       </nav>
 
       {/* 3. 메인 콘텐츠 */}
-      {/* w-full과 overflow-x-hidden을 추가하여 자식 요소가 부모 너비를 넘지 못하게 차단 */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 w-full">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 w-full box-border">
         
-        {/* 전광판 헤더 마키 텍스트 */}
+        {/* 전광판 헤더 마키 텍스트 (너비 탈출 원천 차단) */}
         {(activeTab === 'individual' || activeTab === 'team') && (
-          <div className="overflow-hidden mb-5 bg-gray-900 py-2 rounded-lg border-2 border-gray-800 shadow-md w-full relative">
-            <p className="text-amber-400 font-mono text-xs font-bold animate-marquee led-text inline-block min-w-full">
-              [안내] 현재 나눔 랭킹이 실시간으로 업데이트 중입니다. 일상 속 나눔에 동참해 주셔서 감사합니다.
-            </p>
+          <div className="mb-5 bg-gray-900 py-2 px-3 rounded-lg border-2 border-gray-800 shadow-md w-full max-w-full overflow-hidden box-border">
+            <div className="w-full overflow-hidden whitespace-nowrap">
+              <p className="text-amber-400 font-mono text-xs font-bold animate-marquee led-text inline-block">
+                [안내] 현재 나눔 랭킹이 실시간으로 업데이트 중입니다. 일상 속 나눔에 동참해 주셔서 감사합니다.
+              </p>
+            </div>
           </div>
         )}
 
         {/* 팀 랭킹 */}
         {activeTab === 'team' && (
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm relative overflow-hidden space-y-6 font-mono pb-8 w-full">
+          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm relative overflow-hidden space-y-6 font-mono pb-8 w-full box-border">
             
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 flex flex-col items-center justify-center mb-4">
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 flex flex-col items-center justify-center mb-4 w-full box-border">
               <span className="text-[#1428A0] text-sm font-bold mb-1 whitespace-nowrap">현재까지 모인 따뜻한 마음</span>
-              <div className="text-3xl font-extrabold flex items-center gap-2 text-gray-800">
+              <div className="text-3xl font-extrabold flex items-center gap-2 text-gray-800 overflow-hidden max-w-full">
                 <span className="text-pink-500 animate-pulse">💖</span>
-                <span>{totalRaisedAmount.toLocaleString()}</span>
+                <span className="truncate">{totalRaisedAmount.toLocaleString()}</span>
                 <span className="text-lg font-normal text-gray-500">만원</span>
               </div>
             </div>
 
-            <div className="space-y-8 mt-6">
+            <div className="space-y-8 mt-6 w-full">
               {teamRanking.map((team, index) => {
                 const progress = mounted ? Math.max(5, (team.totalScore / maxTeamScore) * 85) : 0;
                 
                 return (
-                  <div key={team.id} className="relative w-full">
+                  <div key={team.id} className="relative w-full box-border">
                     <div className="flex justify-between items-end mb-3 border-b border-gray-100 pb-2">
                       <span className="font-bold flex items-center gap-2 text-sm text-gray-800">
                         <span className="text-xl">
@@ -182,8 +181,7 @@ function App() {
                       </span>
                     </div>
 
-                    {/* 트랙 너비 고정 */}
-                    <div className="relative h-4 w-full bg-gray-200 rounded-full flex items-center mt-4">
+                    <div className="relative h-4 w-full bg-gray-200 rounded-full flex items-center mt-4 box-border overflow-visible">
                       <div className="absolute right-0 -top-6 text-gray-400 text-xs">🏁</div>
                       
                       <div className="absolute w-full flex justify-between px-2">
@@ -215,28 +213,28 @@ function App() {
 
         {/* 개인 랭킹 */}
         {activeTab === 'individual' && (
-          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm relative overflow-hidden font-mono w-full">
-            <div className="space-y-3">
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm relative overflow-hidden font-mono w-full box-border">
+            <div className="space-y-3 w-full">
               {individualRanking.length === 0 ? (
                 <p className="text-center text-gray-400 py-8 text-sm">등록된 기록이 없습니다.</p>
               ) : (
                 individualRanking.map((player, index) => (
-                  <div key={player.id} className={`flex items-center p-3 rounded-lg border border-gray-100 ${index < 3 ? 'bg-blue-50/50' : 'bg-gray-50'}`}>
-                    <div className="w-8 flex justify-center items-center">
+                  <div key={player.id} className={`flex items-center p-3 rounded-lg border border-gray-100 w-full box-border ${index < 3 ? 'bg-blue-50/50' : 'bg-gray-50'}`}>
+                    <div className="w-8 flex justify-center items-center shrink-0">
                       {index === 0 && <span className="text-2xl">🥇</span>}
                       {index === 1 && <span className="text-2xl">🥈</span>}
                       {index === 2 && <span className="text-2xl">🥉</span>}
                       {index > 2 && <span className="text-gray-400 font-bold">{index + 1}</span>}
                     </div>
-                    <div className="flex-1 ml-3">
-                      <div className={`font-bold ${index < 3 ? 'text-[#1428A0] text-lg' : 'text-gray-800'}`}>
+                    <div className="flex-1 ml-3 min-w-0">
+                      <div className={`font-bold truncate ${index < 3 ? 'text-[#1428A0] text-lg' : 'text-gray-800'}`}>
                         {player.name}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate">
                         {INITIAL_TEAMS.find(t => t.id === player.team_id)?.name}
                       </div>
                     </div>
-                    <div className={`font-bold tracking-wider ${index < 3 ? 'text-[#1428A0] text-xl' : 'text-gray-700'}`}>
+                    <div className={`font-bold tracking-wider shrink-0 ml-2 ${index < 3 ? 'text-[#1428A0] text-xl' : 'text-gray-700'}`}>
                       {player.score.toLocaleString()}<span className="text-xs ml-1 text-gray-500">만원</span>
                     </div>
                   </div>
@@ -248,8 +246,8 @@ function App() {
 
         {/* 부스 안내 */}
         {activeTab === 'info' && (
-          <div className="space-y-6 w-full">
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden">
+          <div className="space-y-6 w-full box-border">
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden box-border">
               <div className="absolute top-0 left-0 w-1 h-full bg-[#1428A0]"></div>
               <h3 className="font-extrabold text-[#1428A0] mb-2 flex items-center gap-2">
                 <span>💖</span> 삼성 나눔 키오스크란?
@@ -273,7 +271,7 @@ function App() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative w-full">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative w-full box-border">
               <h3 className="font-extrabold text-gray-800 mb-6 flex items-center gap-2">
                 <span>🚇</span> 나눔 투어 노선도
               </h3>
@@ -309,7 +307,7 @@ function App() {
       </main>
 
       {/* 4. 푸터 */}
-      <footer className="bg-white border-t border-gray-200 p-4 text-center relative w-full">
+      <footer className="bg-white border-t border-gray-200 p-4 text-center relative w-full box-border">
         <p className="text-xs text-gray-500 font-medium">여러분의 작은 참여가 아이들에게 큰 희망이 됩니다.</p>
         <p className="text-[10px] text-gray-400 mt-1">© SAMSUNG NANUM KIOSK</p>
         
@@ -323,8 +321,8 @@ function App() {
 
       {/* 관리자 모달 */}
       {isAdminOpen && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl">
+        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm box-border">
+          <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl box-border">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-800">🛠 스태프 전용 점수 등록</h2>
               <button onClick={() => setIsAdminOpen(false)} className="text-gray-500 text-xl font-bold">&times;</button>
