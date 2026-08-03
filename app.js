@@ -12,18 +12,6 @@ const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 
 // --- 커스텀 애니메이션 ---
 const style = `
-  @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-  .animate-marquee {
-    display: inline-block;
-    white-space: nowrap;
-    animation: marquee 15s linear infinite;
-  }
-  .led-text {
-    text-shadow: 0 0 5px rgba(251, 191, 36, 0.8);
-  }
   @keyframes bobble {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-3px); }
@@ -187,11 +175,11 @@ function App() {
         {/* 3. 메인 콘텐츠 */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           
-          {/* 전광판 헤더 마키 텍스트 (너비 확장 100% 차단) */}
-          {(activeTab === 'individual' || activeTab === 'team') && (
-            <div className="mb-5 bg-gray-900 py-2 rounded-lg border-2 border-gray-800 shadow-md w-full max-w-full overflow-hidden relative box-border">
-              <div className="whitespace-nowrap overflow-hidden w-full">
-                <p className="text-amber-400 font-mono text-xs font-bold animate-marquee led-text inline-block min-w-full">
+          {/* 팀 랭킹 (라이트 테마 적용) */}
+          {activeTab === 'team' && (
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm relative overflow-hidden space-y-6 font-mono pb-8">
+              
+              {/* 총 모금액 표시 (라이트 테마) */}
                   [안내] 현재 나눔 랭킹이 실시간으로 업데이트 중입니다. 일상 속 나눔에 동참해 주셔서 감사합니다.
                 </p>
               </div>
