@@ -96,11 +96,11 @@ function App() {
   };
 
   return (
-    // 전체 컨테이너를 정중앙 배치 & 레이아웃 붕괴 방지
-    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800">
+    // 배경을 흰색(bg-white)으로 변경하여 레이아웃 분리감 해소
+    <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col shadow-2xl relative font-sans text-gray-800">
       <style>{style}</style>
       
-      {/* 1. 헤더 (Flexbox로 재설계하여 좌우 삐져나감 방지) */}
+      {/* 1. 헤더 */}
       <header className="bg-white px-5 pt-6 pb-4 border-b-8 border-[#1428A0]">
         <div className="flex items-center justify-between bg-white border-4 border-[#1428A0] rounded-full py-2.5 px-3 shadow-sm">
           <div className="w-7 h-7 bg-[#1428A0] rounded-full flex justify-center items-center shrink-0">
@@ -138,14 +138,14 @@ function App() {
         </button>
       </nav>
 
-      {/* 3. 메인 콘텐츠 */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-5">
+      {/* 3. 메인 콘텐츠 (불필요한 전체 패딩 제거) */}
+      <main className="flex-1 overflow-y-auto">
         
         {/* 팀 랭킹 */}
         {activeTab === 'team' && (
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-mono">
+          <div className="px-4 py-6 sm:px-5 font-mono">
             {/* 총 모금액 표시 */}
-            <div className="bg-blue-50/50 rounded-xl p-4 flex flex-col items-center justify-center mb-7 border border-blue-100">
+            <div className="bg-blue-50/50 rounded-xl p-4 flex flex-col items-center justify-center mb-8 border border-blue-100">
               <span className="text-[#1428A0] text-xs font-bold mb-1.5">현재까지 모인 따뜻한 마음</span>
               <div className="flex items-center gap-2">
                 <Heart className="w-6 h-6 text-pink-500 fill-current animate-pulse" />
@@ -154,15 +154,13 @@ function App() {
               </div>
             </div>
 
-            {/* 팀별 레이싱 트랙 (간격 유지 및 레이아웃 안정화) */}
+            {/* 팀별 레이싱 트랙 */}
             <div className="flex flex-col gap-8">
               {teamRanking.map((team, index) => {
-                // 기차가 박스를 이탈하지 않도록 10% ~ 90% 사이로 이동 범위 제한
                 const progress = mounted ? Math.max(10, Math.min(90, (team.totalScore / maxTeamScore) * 90)) : 10;
                 
                 return (
                   <div key={team.id} className="w-full">
-                    {/* 상단 텍스트 영역 */}
                     <div className="flex justify-between items-center mb-2.5">
                       <div className="flex items-center gap-2">
                         <span className="text-lg w-6 text-center">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-sm">{index + 1}</span>}</span>
@@ -173,13 +171,11 @@ function App() {
                       </div>
                     </div>
 
-                    {/* 트랙 영역 */}
                     <div className="relative mt-5">
                       <div className="absolute right-0 -top-5">
                         <Flag className="w-4 h-4 text-gray-300" />
                       </div>
                       
-                      {/* 배경 회색 선 */}
                       <div className="h-3 w-full bg-gray-100 rounded-full flex items-center px-2 justify-between border border-gray-200/50">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -188,10 +184,8 @@ function App() {
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       </div>
 
-                      {/* 진척도 색상 선 */}
                       <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
 
-                      {/* 기차 아이콘 (왼쪽/오른쪽 벽에 박히지 않도록 중앙 정렬) */}
                       <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `${progress}%` }}>
                         <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
                           <Train className="w-4 h-4" />
@@ -207,7 +201,7 @@ function App() {
 
         {/* 개인 랭킹 */}
         {activeTab === 'individual' && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 font-mono">
+          <div className="px-4 py-6 sm:px-5 font-mono">
             <div className="flex flex-col gap-3">
               {individualRanking.length === 0 ? (
                 <div className="text-center text-gray-400 py-10 text-sm">등록된 기록이 없습니다.</div>
@@ -233,7 +227,7 @@ function App() {
 
         {/* 부스 안내 */}
         {activeTab === 'info' && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5 px-4 py-6 sm:px-5">
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
               <div className="absolute left-0 top-0 w-1 h-full bg-[#1428A0]"></div>
               <h3 className="font-bold text-[#1428A0] text-sm flex items-center gap-1.5 mb-2.5">
@@ -337,4 +331,4 @@ function App() {
 
 if (typeof ReactDOM !== 'undefined') {
   ReactDOM.render(<App />, document.getElementById('root'));
-  }
+          }
