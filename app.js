@@ -1,6 +1,6 @@
 const { useState, useMemo, useEffect } = React;
 
-// --- 아이콘 SVG ---
+// --- 아이콘 SVG 직접 삽입 ---
 const Trophy = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2Z"/></svg>;
 const Users = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const Info = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
@@ -10,11 +10,11 @@ const Settings = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" h
 const Train = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
 const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>;
 
-// --- 기차 애니메이션 ---
+// --- 기차 애니메이션 (레이아웃 이탈 방지 처리) ---
 const style = `
   @keyframes bobble {
-    0%, 100% { transform: translate(-50%, -50%); }
-    50% { transform: translate(-50%, calc(-50% - 4px)); }
+    0%, 100% { transform: translateY(-50%); }
+    50% { transform: translateY(calc(-50% - 4px)); }
   }
   .animate-train {
     animation: bobble 1.5s ease-in-out infinite;
@@ -96,34 +96,39 @@ function App() {
   };
 
   return (
-    // 배경을 흰색(bg-white)으로 변경하여 레이아웃 분리감 해소
-    <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col shadow-2xl relative font-sans text-gray-800">
+    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 1. 헤더 */}
-      <header className="bg-white px-5 pt-6 pb-4 border-b-8 border-[#1428A0]">
-        <div className="flex items-center justify-between bg-white border-4 border-[#1428A0] rounded-full py-2.5 px-3 shadow-sm">
-          <div className="w-7 h-7 bg-[#1428A0] rounded-full flex justify-center items-center shrink-0">
-            <ArrowRight className="text-white w-4 h-4 rotate-180" />
+      {/* 1. 헤더 (요청하신 이미지 디자인 완벽 적용) */}
+      <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
+        <div className="w-full rounded-[2rem] border-[3px] border-[#1428A0] bg-white flex overflow-hidden shadow-sm h-[4.5rem]">
+          {/* 왼쪽 둥근 파란 영역 */}
+          <div className="w-14 bg-[#1428A0] flex items-center justify-center shrink-0">
+            <ArrowRight className="text-white w-5 h-5 rotate-180" />
           </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5">SAMSUNG KIOSK</span>
-            <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5">
+          
+          {/* 중앙 텍스트 영역 */}
+          <div className="flex-1 flex flex-col items-center justify-center bg-white px-2">
+            <span className="text-[10px] text-gray-500 font-bold tracking-wider mb-0.5 uppercase">SAMSUNG KIOSK</span>
+            <h1 className="text-lg sm:text-xl font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
               삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
             </h1>
           </div>
-          <div className="w-7 h-7 bg-[#1428A0] rounded-full flex justify-center items-center shrink-0">
-            <ArrowRight className="text-white w-4 h-4" />
+          
+          {/* 오른쪽 둥근 파란 영역 */}
+          <div className="w-14 bg-[#1428A0] flex items-center justify-center shrink-0">
+            <ArrowRight className="text-white w-5 h-5" />
           </div>
         </div>
-        <div className="flex justify-between mt-3 px-4 text-[10px] font-bold text-gray-400">
+        
+        <div className="flex justify-between mt-3 px-5 text-[10px] font-bold text-gray-400">
           <span>← 나눔의 시작</span>
           <span>아이들의 미래 →</span>
         </div>
       </header>
 
       {/* 2. 내비게이션 바 */}
-      <nav className="flex bg-white border-b border-gray-200">
+      <nav className="flex bg-white shadow-sm z-10">
         <button onClick={() => setActiveTab('team')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'team' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
           <Users className="w-5 h-5" />
           <span className="text-xs font-bold">팀 랭킹</span>
@@ -138,26 +143,24 @@ function App() {
         </button>
       </nav>
 
-      {/* 3. 메인 콘텐츠 (불필요한 전체 패딩 제거) */}
-      <main className="flex-1 overflow-y-auto">
+      {/* 3. 메인 콘텐츠 (모든 탭이 동일한 레이아웃 규칙을 따르도록 재설계) */}
+      <main className="flex-1 overflow-y-auto p-4 sm:p-5 flex flex-col gap-4">
         
-        {/* 팀 랭킹 */}
+        {/* === 팀 랭킹 === */}
         {activeTab === 'team' && (
-          <div className="px-4 py-6 sm:px-5 font-mono">
-            {/* 총 모금액 표시 */}
-            <div className="bg-blue-50/50 rounded-xl p-4 flex flex-col items-center justify-center mb-8 border border-blue-100">
-              <span className="text-[#1428A0] text-xs font-bold mb-1.5">현재까지 모인 따뜻한 마음</span>
+          <>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+              <span className="text-[#1428A0] text-xs font-bold mb-2">현재까지 모인 따뜻한 마음</span>
               <div className="flex items-center gap-2">
                 <Heart className="w-6 h-6 text-pink-500 fill-current animate-pulse" />
-                <span className="text-2xl font-black text-gray-800">{totalRaisedAmount.toLocaleString()}</span>
+                <span className="text-2xl font-black text-gray-800 tracking-tight">{totalRaisedAmount.toLocaleString()}</span>
                 <span className="text-sm font-bold text-gray-500">만원</span>
               </div>
             </div>
 
-            {/* 팀별 레이싱 트랙 */}
-            <div className="flex flex-col gap-8">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-8 font-mono">
               {teamRanking.map((team, index) => {
-                const progress = mounted ? Math.max(10, Math.min(90, (team.totalScore / maxTeamScore) * 90)) : 10;
+                const progress = mounted ? Math.max(5, Math.min(95, (team.totalScore / maxTeamScore) * 100)) : 5;
                 
                 return (
                   <div key={team.id} className="w-full">
@@ -186,7 +189,8 @@ function App() {
 
                       <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
 
-                      <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `${progress}%` }}>
+                      {/* 기차 애니메이션 위치 보정 (-14px로 아이콘 중앙 정렬 맞춤) */}
+                      <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `calc(${progress}% - 14px)` }}>
                         <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
                           <Train className="w-4 h-4" />
                         </div>
@@ -196,12 +200,12 @@ function App() {
                 );
               })}
             </div>
-          </div>
+          </>
         )}
 
-        {/* 개인 랭킹 */}
+        {/* === 개인 랭킹 === */}
         {activeTab === 'individual' && (
-          <div className="px-4 py-6 sm:px-5 font-mono">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-mono">
             <div className="flex flex-col gap-3">
               {individualRanking.length === 0 ? (
                 <div className="text-center text-gray-400 py-10 text-sm">등록된 기록이 없습니다.</div>
@@ -225,9 +229,9 @@ function App() {
           </div>
         )}
 
-        {/* 부스 안내 */}
+        {/* === 부스 안내 === */}
         {activeTab === 'info' && (
-          <div className="flex flex-col gap-5 px-4 py-6 sm:px-5">
+          <>
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
               <div className="absolute left-0 top-0 w-1 h-full bg-[#1428A0]"></div>
               <h3 className="font-bold text-[#1428A0] text-sm flex items-center gap-1.5 mb-2.5">
@@ -277,7 +281,7 @@ function App() {
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </main>
 
@@ -331,4 +335,4 @@ function App() {
 
 if (typeof ReactDOM !== 'undefined') {
   ReactDOM.render(<App />, document.getElementById('root'));
-          }
+}
