@@ -399,7 +399,7 @@ function App() {
         </div>
         
         <div className="flex justify-between mt-3 px-3 text-[10px] font-bold text-gray-400">
-          <span>← 사원증 태깅</span>
+          <span>← 사원증 태깅역</span>
           <span>미니게임역 →</span>
         </div>
       </header>
