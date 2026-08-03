@@ -6,11 +6,12 @@ const Users = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 const Info = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
 const Heart = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
 const ArrowRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
+const ArrowLeft = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>;
 const Settings = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 const Train = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
 const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>;
 
-// --- 기차 애니메이션 ---
+// --- 기차 애니메이션 (레이아웃 이탈 완벽 차단) ---
 const style = `
   @keyframes bobble {
     0%, 100% { transform: translateY(-50%); }
@@ -96,24 +97,28 @@ function App() {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800">
+    // 전체 배경은 회색으로 설정하여 흰색 카드 컴포넌트가 눈에 띄게 설계
+    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 1. 헤더 (이미지와 완벽히 동일한 알약 형태 디자인) */}
+      {/* 1. 헤더 (요청하신 알약 형태의 디자인 완벽 반영) */}
       <header className="bg-white px-4 pt-6 pb-4 border-b border-gray-200">
-        <div className="w-full rounded-[2.5rem] border-4 border-[#1428A0] bg-white flex overflow-hidden shadow-sm h-16">
-          <div className="w-14 bg-[#1428A0] flex items-center justify-center shrink-0">
-            <ArrowRight className="text-white w-5 h-5 rotate-180" />
+        <div className="w-full bg-[#1428A0] rounded-[2.5rem] flex h-16 shadow-sm overflow-hidden border border-[#1428A0]">
+          {/* 왼쪽 화살표 */}
+          <div className="w-14 flex items-center justify-center shrink-0">
+            <ArrowLeft className="text-white w-5 h-5" />
           </div>
           
-          <div className="flex-1 flex flex-col items-center justify-center bg-white px-2">
+          {/* 중앙 텍스트 영역 (흰색 배경) */}
+          <div className="flex-1 bg-white flex flex-col items-center justify-center px-2">
             <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG KIOSK</span>
             <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
               삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
             </h1>
           </div>
           
-          <div className="w-14 bg-[#1428A0] flex items-center justify-center shrink-0">
+          {/* 오른쪽 화살표 */}
+          <div className="w-14 flex items-center justify-center shrink-0">
             <ArrowRight className="text-white w-5 h-5" />
           </div>
         </div>
@@ -125,7 +130,7 @@ function App() {
       </header>
 
       {/* 2. 내비게이션 바 */}
-      <nav className="flex bg-white shadow-sm z-10">
+      <nav className="flex bg-white shadow-sm z-10 border-b-2 border-gray-100">
         <button onClick={() => setActiveTab('team')} className={`flex-1 py-3.5 flex flex-col items-center gap-1 transition-colors ${activeTab === 'team' ? 'bg-[#1428A0] text-white shadow-inner' : 'text-gray-500'}`}>
           <Users className="w-5 h-5" />
           <span className="text-xs font-bold">팀 랭킹</span>
@@ -140,104 +145,109 @@ function App() {
         </button>
       </nav>
 
-      {/* 3. 메인 콘텐츠 (모든 탭이 동일하게 카드형 분리 구조를 가지도록 통일) */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-5 flex flex-col gap-4">
+      {/* 3. 메인 콘텐츠 (모든 탭이 꽉 찬 단일/통일된 카드 구조를 사용) */}
+      <main className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         
         {/* === 팀 랭킹 === */}
         {activeTab === 'team' && (
-          <>
-            {/* 독립된 모금액 카드 */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-              <span className="text-[#1428A0] text-xs font-bold mb-2">현재까지 모인 따뜻한 마음</span>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col">
+            
+            {/* 총 모금액 표시 (카드의 헤더 역할) */}
+            <div className="bg-blue-50/30 p-6 flex flex-col items-center justify-center border-b border-gray-100">
+              <span className="text-[#1428A0] text-sm font-bold mb-2">현재까지 모인 따뜻한 마음</span>
               <div className="flex items-center gap-2">
-                <Heart className="w-6 h-6 text-pink-500 fill-current animate-pulse" />
-                <span className="text-2xl font-black text-gray-800 tracking-tight">{totalRaisedAmount.toLocaleString()}</span>
-                <span className="text-sm font-bold text-gray-500">만원</span>
+                <Heart className="w-7 h-7 text-pink-500 fill-current animate-pulse" />
+                <span className="text-4xl font-black text-gray-800 tracking-tight">{totalRaisedAmount.toLocaleString()}</span>
+                <span className="text-base font-bold text-gray-500 mt-2">만원</span>
               </div>
             </div>
 
-            {/* 각각 독립된 팀 랭킹 카드들 (좌우 꽉 차게 변경됨) */}
-            {teamRanking.map((team, index) => {
-              // 기차가 박스를 이탈하지 않도록 범위 제한
-              const progress = mounted ? Math.max(5, Math.min(95, (team.totalScore / maxTeamScore) * 100)) : 5;
-              
-              return (
-                <div key={team.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 font-mono w-full">
-                  <div className="flex justify-between items-center mb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg w-6 text-center">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-sm">{index + 1}</span>}</span>
-                      <span className={`font-bold text-sm ${index === 0 ? 'text-[#1428A0]' : 'text-gray-700'}`}>{team.name}</span>
-                    </div>
-                    <div className={`font-bold ${index === 0 ? 'text-[#1428A0]' : 'text-gray-800'}`}>
-                      {team.totalScore.toLocaleString()} <span className="text-xs text-gray-500 font-medium">만원</span>
-                    </div>
-                  </div>
-
-                  <div className="relative mt-5">
-                    <div className="absolute right-0 -top-5">
-                      <Flag className="w-4 h-4 text-gray-300" />
-                    </div>
-                    
-                    <div className="h-3 w-full bg-gray-100 rounded-full flex items-center px-2 justify-between border border-gray-200/50">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+            {/* 팀별 레이싱 트랙 리스트 */}
+            <div className="p-5 flex flex-col gap-8">
+              {teamRanking.map((team, index) => {
+                const progress = mounted ? Math.max(5, Math.min(95, (team.totalScore / maxTeamScore) * 100)) : 5;
+                
+                return (
+                  <div key={team.id} className="w-full">
+                    {/* 팀명 및 점수 */}
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg w-6 text-center">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-sm">{index + 1}</span>}</span>
+                        <span className={`font-bold text-base ${index === 0 ? 'text-[#1428A0]' : 'text-gray-700'}`}>{team.name}</span>
+                      </div>
+                      <div className={`font-bold text-lg ${index === 0 ? 'text-[#1428A0]' : 'text-gray-800'}`}>
+                        {team.totalScore.toLocaleString()} <span className="text-xs text-gray-500 font-medium">만원</span>
+                      </div>
                     </div>
 
-                    <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
+                    {/* 트랙 영역 */}
+                    <div className="relative mt-4">
+                      <div className="absolute right-0 -top-5">
+                        <Flag className="w-4 h-4 text-gray-300" />
+                      </div>
+                      
+                      {/* 회색 바탕 트랙 */}
+                      <div className="h-3 w-full bg-gray-100 rounded-full flex items-center px-2 justify-between border border-gray-200/50">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      </div>
 
-                    {/* 기차 애니메이션 위치 보정 (-14px로 아이콘 중앙 정렬 맞춤) */}
-                    <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `calc(${progress}% - 14px)` }}>
-                      <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
-                        <Train className="w-4 h-4" />
+                      {/* 색상 채워지는 트랙 */}
+                      <div className={`absolute top-0 left-0 h-3 ${team.bgClass} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }}></div>
+
+                      {/* 기차 애니메이션 (위치 보정 반영) */}
+                      <div className="absolute top-1/2 animate-train transition-all duration-1000" style={{ left: `calc(${progress}% - 14px)` }}>
+                        <div className={`w-7 h-7 bg-white rounded-full shadow-md border-2 border-gray-100 flex items-center justify-center ${team.textClass}`}>
+                          <Train className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* === 개인 랭킹 === */}
         {activeTab === 'individual' && (
-          <>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-mono flex flex-col p-2">
             {individualRanking.length === 0 ? (
-              <div className="text-center text-gray-400 py-10 text-sm font-mono">등록된 기록이 없습니다.</div>
+              <div className="text-center text-gray-400 py-10 text-sm">등록된 기록이 없습니다.</div>
             ) : (
               individualRanking.map((player, index) => (
-                /* 각각 독립된 개인 랭킹 카드들 */
-                <div key={player.id} className={`bg-white flex items-center p-4 rounded-2xl shadow-sm border font-mono w-full ${index < 3 ? 'border-blue-100 bg-blue-50/20' : 'border-gray-100'}`}>
-                  <div className="w-8 flex justify-center shrink-0 text-lg">
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-sm">{index + 1}</span>}
+                <div key={player.id} className={`flex items-center p-4 border-b border-gray-50 last:border-b-0 ${index < 3 ? 'bg-blue-50/20' : ''}`}>
+                  <div className="w-10 flex justify-center shrink-0 text-xl">
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : <span className="text-gray-400 font-bold text-base">{index + 1}</span>}
                   </div>
                   <div className="flex-1 ml-3 min-w-0">
-                    <div className={`font-bold text-sm truncate ${index < 3 ? 'text-[#1428A0]' : 'text-gray-800'}`}>{player.name}</div>
-                    <div className="text-[10px] text-gray-500 truncate">{INITIAL_TEAMS.find(t => t.id === player.team_id || t.id === player.teamId)?.name}</div>
+                    <div className={`font-bold text-base truncate ${index < 3 ? 'text-[#1428A0]' : 'text-gray-800'}`}>{player.name}</div>
+                    <div className="text-xs text-gray-500 truncate mt-0.5">{INITIAL_TEAMS.find(t => t.id === player.team_id || t.id === player.teamId)?.name}</div>
                   </div>
-                  <div className={`font-bold shrink-0 text-sm ${index < 3 ? 'text-[#1428A0]' : 'text-gray-700'}`}>
-                    {player.score.toLocaleString()} <span className="text-[10px] font-medium text-gray-500">만원</span>
+                  <div className={`font-bold shrink-0 text-base ${index < 3 ? 'text-[#1428A0]' : 'text-gray-700'}`}>
+                    {player.score.toLocaleString()} <span className="text-xs font-medium text-gray-500">만원</span>
                   </div>
                 </div>
               ))
             )}
-          </>
+          </div>
         )}
 
         {/* === 부스 안내 === */}
         {activeTab === 'info' && (
           <>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
-              <div className="absolute left-0 top-0 w-1 h-full bg-[#1428A0]"></div>
-              <h3 className="font-bold text-[#1428A0] text-sm flex items-center gap-1.5 mb-2.5">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+              <div className="absolute left-0 top-0 w-1.5 h-full bg-[#1428A0]"></div>
+              <h3 className="font-bold text-[#1428A0] text-sm flex items-center gap-1.5 mb-3 ml-1">
                 <Heart className="w-4 h-4 text-pink-500 fill-current" /> 삼성 나눔 키오스크란?
               </h3>
-              <p className="text-xs text-gray-600 leading-relaxed mb-4">
+              <p className="text-xs text-gray-600 leading-relaxed mb-5 ml-1">
                 2015년 삼성전자 구미사업장 임직원들의 아이디어로 시작된 <strong>'일상 속 기부 플랫폼'</strong>입니다. 사내에 설치된 키오스크에 사원증을 태깅하면 1,000원씩 간편하게 기부할 수 있습니다.
               </p>
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-3 ml-1">
                 <div className="flex-1 bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
                   <div className="text-[10px] text-gray-500 mb-1">10년간 누적 기부액</div>
                   <div className="font-bold text-[#1428A0] text-sm">약 112억 원</div>
@@ -247,7 +257,7 @@ function App() {
                   <div className="font-bold text-[#1428A0] text-sm">3,770여 명</div>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400 text-center">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
+              <p className="text-[10px] text-gray-400 text-center ml-1">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
             </div>
 
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
