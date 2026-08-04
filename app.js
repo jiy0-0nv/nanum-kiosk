@@ -58,7 +58,7 @@ function App() {
 
   // --- 오른쪽 미니게임 (전주 연수원 쯔꾸르 모험) 상태 ---
   const [showGameModal, setShowGameModal] = useState(false);
-  const [gameStep, setGameStep] = useState('ready'); // 'ready' | 'playing' | 'result'
+  const [gameStep, setGameStep] = useState('ready');
   const [gameName, setGameName] = useState('');
   const [gameTeam, setGameTeam] = useState('B');
   
@@ -66,7 +66,7 @@ function App() {
   const [mapData, setMapData] = useState([]);
   const [logMessage, setLogMessage] = useState("전주 연수원에 입장했습니다! 키오스크 3대를 찾아 태깅하세요.");
   const [foundKiosks, setFoundKiosks] = useState(0);
-  const [activePopup, setActivePopup] = useState(null); // 'menu' | 'schedule' | null
+  const [activePopup, setActivePopup] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -146,10 +146,6 @@ function App() {
   const startRpgGame = () => {
     if (!gameName.trim()) { alert("이름을 입력해주세요!"); return; }
     
-    // 0: 빈칸
-    // 1: 숨겨진 키오스크 / 4: 찾은 키오스크
-    // 2: 숨겨진 식단표 / 5: 찾은 식단표
-    // 3: 숨겨진 일정표 / 6: 찾은 일정표
     let newMap = Array(5).fill(0).map(() => Array(5).fill(0));
     
     let placedKiosks = 0;
@@ -157,7 +153,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 1;
+        newMap[ry][rx] = 1; 
         placedKiosks++;
       }
     }
@@ -166,7 +162,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 2;
+        newMap[ry][rx] = 2; 
         break;
       }
     }
@@ -175,7 +171,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 3;
+        newMap[ry][rx] = 3; 
         break;
       }
     }
@@ -202,7 +198,6 @@ function App() {
     let mapChanged = false;
 
     if (cellType === 1) {
-      // 1(숨겨진 키오스크) -> 4(찾은 키오스크)
       updatedMap[newY][newX] = 4;
       mapChanged = true;
       const nextFound = foundKiosks + 1;
@@ -210,17 +205,14 @@ function App() {
       setLogMessage(`✨ 키오스크 발견! (+1,000원 누적) 현재 ${nextFound}/3대`);
 
       if (nextFound === 3) {
-        // 마지막 키오스크 아이콘이 그려질 수 있도록 약간 딜레이 후 종료
         setTimeout(() => endRpgGame(3), 600);
       }
     } else if (cellType === 2) {
-      // 2(숨겨진 식단표) -> 5(찾은 식단표)
       updatedMap[newY][newX] = 5;
       mapChanged = true;
       setActivePopup('menu');
       setLogMessage("🍲 구내식당 식단표를 발견했습니다.");
     } else if (cellType === 3) {
-      // 3(숨겨진 일정표) -> 6(찾은 일정표)
       updatedMap[newY][newX] = 6;
       mapChanged = true;
       setActivePopup('schedule');
@@ -566,32 +558,59 @@ function App() {
               </div>
               <p className="text-[10px] text-gray-400 text-center ml-1">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
             </div>
+            
+            {/* 업데이트된 5단계 나눔 투어 노선도 */}
             <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 text-sm flex items-center gap-1.5 mb-5">
                 <Train className="w-4 h-4 text-gray-500" /> 나눔 투어 노선도
               </h3>
-              <div className="relative pl-5 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:via-green-500 before:to-pink-500">
+              <div className="relative pl-5 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-indigo-500 before:via-green-500 before:to-pink-500">
+                
+                {/* 0. 참여역 */}
+                <div className="relative flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">0</div>
+                  <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
+                    <h4 className="font-bold text-gray-800 text-xs mb-1">참여역</h4>
+                    <p className="text-[10px] text-gray-500">부스에 방문하여 나눔 투어 안내를 받습니다.</p>
+                  </div>
+                </div>
+
+                {/* 1. 터치나눔역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">1</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
-                    <h4 className="font-bold text-gray-800 text-xs mb-1">참여역</h4>
-                    <p className="text-[10px] text-gray-500">부스에 방문하여 미니게임 안내를 받습니다.</p>
+                    <h4 className="font-bold text-gray-800 text-xs mb-1">터치나눔역 <span className="text-[10px] text-blue-500 font-normal ml-1">(딱지치기)</span></h4>
+                    <p className="text-[10px] text-gray-500">딱지치기 미션을 수행하고 기부 금액을 적립합니다.</p>
                   </div>
                 </div>
+
+                {/* 2. 희망세움역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">2</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
-                    <h4 className="font-bold text-gray-800 text-xs mb-1">미니게임역</h4>
-                    <p className="text-[10px] text-gray-500">팀을 위해 미니게임을 즐기고 랭킹 금액을 획득합니다.</p>
+                    <h4 className="font-bold text-gray-800 text-xs mb-1">희망세움역 <span className="text-[10px] text-green-500 font-normal ml-1">(물병 세우기)</span></h4>
+                    <p className="text-[10px] text-gray-500">물병 세우기 미션을 수행하고 기부 금액을 적립합니다.</p>
                   </div>
                 </div>
+
+                {/* 3. 마음도착역 */}
                 <div className="relative flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">3</div>
+                  <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">3</div>
+                  <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
+                    <h4 className="font-bold text-gray-800 text-xs mb-1">마음도착역 <span className="text-[10px] text-yellow-600 font-normal ml-1">(병뚜껑 튕기기)</span></h4>
+                    <p className="text-[10px] text-gray-500">병뚜껑 튕기기 미션을 수행하고 기부 금액을 적립합니다.</p>
+                  </div>
+                </div>
+
+                {/* 4. 나눔역 (종점) */}
+                <div className="relative flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">4</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
                     <h4 className="font-bold text-gray-800 text-xs mb-1">나눔역 (종점)</h4>
-                    <p className="text-[10px] text-gray-500">획득한 금액을 랭킹에 등록하고 기부의 기쁨을 나눕니다.</p>
+                    <p className="text-[10px] text-gray-500">획득한 총 금액을 랭킹에 등록하고 기부의 기쁨을 나눕니다.</p>
                   </div>
                 </div>
+
               </div>
             </div>
           </>
@@ -611,4 +630,3 @@ if (typeof ReactDOM !== 'undefined') {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(<App />);
 }
-
