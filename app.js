@@ -67,6 +67,9 @@ function App() {
   const [logMessage, setLogMessage] = useState("전주 연수원에 입장했습니다! 키오스크 3대를 찾아 태깅하세요.");
   const [foundKiosks, setFoundKiosks] = useState(0);
   const [activePopup, setActivePopup] = useState(null);
+  
+  const MAX_MOVES = 30; // 제한된 이동 횟수 (널널하게 설정)
+  const [movesLeft, setMovesLeft] = useState(MAX_MOVES);
 
   useEffect(() => {
     setMounted(true);
@@ -180,33 +183,37 @@ function App() {
     setPlayerPos({ x: 2, y: 2 });
     setFoundKiosks(0);
     setActivePopup(null);
-    setLogMessage("전주 연수원 로비입니다. 방향키로 이동하세요!");
+    setMovesLeft(MAX_MOVES);
+    setLogMessage("전주 연수원에 입장했습니다. 방향키로 이동하세요!");
     setGameStep('playing');
   };
 
   const movePlayer = (dx, dy) => {
-    if (gameStep !== 'playing' || activePopup) return;
+    if (gameStep !== 'playing' || activePopup || movesLeft <= 0) return;
     
     let newX = Math.max(0, Math.min(4, playerPos.x + dx));
     let newY = Math.max(0, Math.min(4, playerPos.y + dy));
-    setPlayerPos({ x: newX, y: newY });
+    
+    // 벽에 막혀서 실제로 이동하지 않은 경우 횟수 차감 방지
+    if (newX === playerPos.x && newY === playerPos.y) return;
 
     if (navigator.vibrate) navigator.vibrate(15);
+    
+    const currentMoves = movesLeft - 1;
+    setMovesLeft(currentMoves);
+    setPlayerPos({ x: newX, y: newY });
 
     const cellType = mapData[newY][newX];
     let updatedMap = [...mapData.map(row => [...row])];
     let mapChanged = false;
+    let nextFound = foundKiosks;
 
     if (cellType === 1) {
       updatedMap[newY][newX] = 4;
       mapChanged = true;
-      const nextFound = foundKiosks + 1;
+      nextFound = foundKiosks + 1;
       setFoundKiosks(nextFound);
       setLogMessage(`✨ 키오스크 발견! (+1,000원 누적) 현재 ${nextFound}/3대`);
-
-      if (nextFound === 3) {
-        setTimeout(() => endRpgGame(3), 600);
-      }
     } else if (cellType === 2) {
       updatedMap[newY][newX] = 5;
       mapChanged = true;
@@ -230,12 +237,23 @@ function App() {
     if (mapChanged) {
       setMapData(updatedMap);
     }
+
+    // 종료 조건 판별 (모두 찾았거나 이동 횟수 소진)
+    if (cellType === 1 && nextFound === 3) {
+      setTimeout(() => endRpgGame(3), 600);
+    } else if (currentMoves === 0) {
+      setTimeout(() => endRpgGame(nextFound), 600);
+    }
   };
 
   const endRpgGame = async (count) => {
     let reward = count * 0.1;
     setGameStep('result');
-    setLogMessage(`🎉 연수원 탐방 완료! 총 ${count}대 발견으로 ${count * 1000}원이 기부되었습니다.`);
+    if (count === 3) {
+      setLogMessage(`🎉 탐방 성공! 총 ${count}대 발견으로 ${count * 1000}원이 기부되었습니다.`);
+    } else {
+      setLogMessage(`⏱️ 이동 횟수 소진! 총 ${count}대 발견으로 ${count * 1000}원이 기부되었습니다.`);
+    }
 
     if (reward > 0 && window.supabaseClient) {
       await window.supabaseClient.from('players').insert([{
@@ -332,9 +350,19 @@ function App() {
             {gameStep === 'playing' && (
               <div className="w-full flex flex-col items-center">
                 {/* 상단 정보창 */}
-                <div className="w-full flex justify-between items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 mb-3 text-xs">
-                  <span className="font-bold text-gray-600">찾은 키오스크: <span className="text-pink-500">{foundKiosks} / 3</span></span>
-                  <span className="text-[10px] text-gray-400">전주 연수원 본관</span>
+                <div className="w-full flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 mb-3 text-xs">
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] text-gray-400 font-bold">찾은 키오스크</span>
+                    <span className="font-black text-pink-500 text-sm">{foundKiosks} / 3</span>
+                  </div>
+                  <div className="flex flex-col items-center border-l border-gray-200 pl-3 ml-1">
+                    <span className="text-[10px] text-gray-400 font-bold">남은 이동</span>
+                    <span className={`font-black text-sm ${movesLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-gray-700'}`}>{movesLeft}</span>
+                  </div>
+                  <div className="flex flex-col items-end ml-auto">
+                    <span className="text-[10px] text-gray-400 font-bold">현재 위치</span>
+                    <span className="font-bold text-gray-600 text-[11px]">연수원 본관</span>
+                  </div>
                 </div>
 
                 {/* 5x5 맵 렌더링 */}
@@ -380,9 +408,11 @@ function App() {
 
             {gameStep === 'result' && (
               <div className="w-full flex flex-col items-center my-2 animate-receipt">
-                <span className="text-4xl mb-2">🎉</span>
-                <h3 className="font-black text-gray-800 text-base mb-1">탐방 미션 성공!</h3>
-                <p className="text-xs text-gray-500 mb-4">{gameName}님의 이름으로 총 3,000원이 기부되었습니다.</p>
+                <span className="text-4xl mb-2">{foundKiosks === 3 ? '🎉' : '👏'}</span>
+                <h3 className="font-black text-gray-800 text-base mb-1">
+                  {foundKiosks === 3 ? '탐방 미션 성공!' : '탐방 종료!'}
+                </h3>
+                <p className="text-xs text-gray-500 mb-4">{gameName}님의 이름으로 총 {foundKiosks * 1000}원이 기부되었습니다.</p>
                 <button onClick={() => { setShowGameModal(false); setGameStep('ready'); }} className="w-full bg-[#1428A0] text-white font-bold rounded-xl py-3 text-xs shadow hover:bg-blue-900 transition-colors">
                   확인
                 </button>
@@ -559,14 +589,12 @@ function App() {
               <p className="text-[10px] text-gray-400 text-center ml-1">여러분의 작은 태그 하나가 모여 아동들의 내일을 지켜주고 있습니다.</p>
             </div>
             
-            {/* 업데이트된 5단계 나눔 투어 노선도 */}
             <div className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 text-sm flex items-center gap-1.5 mb-5">
                 <Train className="w-4 h-4 text-gray-500" /> 나눔 투어 노선도
               </h3>
               <div className="relative pl-5 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-indigo-500 before:via-green-500 before:to-pink-500">
                 
-                {/* 0. 참여역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">0</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
@@ -575,7 +603,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* 1. 터치나눔역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">1</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
@@ -584,7 +611,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* 2. 희망세움역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">2</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
@@ -593,7 +619,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* 3. 마음도착역 */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">3</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
@@ -602,7 +627,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* 4. 나눔역 (종점) */}
                 <div className="relative flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center shrink-0 absolute -left-5 shadow-sm border-2 border-white text-[10px] text-white font-bold">4</div>
                   <div className="bg-gray-50 rounded-lg p-3.5 border border-gray-100 w-full">
