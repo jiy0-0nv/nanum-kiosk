@@ -10,7 +10,7 @@ const ArrowLeft = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" 
 const Settings = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 const Train = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
 const Flag = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>;
-const MapPin = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+const Compass = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>;
 
 const style = `
   @keyframes bobble {
@@ -26,13 +26,6 @@ const style = `
   }
   .animate-receipt {
     animation: receipt-slide-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
-  .grid-cell-pop {
-    animation: cell-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  @keyframes cell-pop {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
   }
 `;
 
@@ -63,18 +56,19 @@ function App() {
   const [eggName, setEggName] = useState('');
   const [eggTeam, setEggTeam] = useState('B');
 
-  // --- 오른쪽 미니게임 (격자 키오스크 탐색) 상태 ---
+  // --- 오른쪽 미니게임 (전주 연수원 쯔꾸르 모험) 상태 ---
   const [showGameModal, setShowGameModal] = useState(false);
   const [gameStep, setGameStep] = useState('ready'); // 'ready' | 'playing' | 'result'
   const [gameName, setGameName] = useState('');
   const [gameTeam, setGameTeam] = useState('B');
-  const [gameResult, setGameResult] = useState(null); // { text, reward, count }
   
-  const GAME_DURATION = 7; // 제한시간 7초
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [kioskPositions, setKioskPositions] = useState([]); // 숨겨진 3개 위치 배열
-  const [revealedCells, setRevealedCells] = useState(Array(16).fill(false)); // 16칸(4x4) 오픈 상태
-  const [foundCount, setFoundCount] = useState(0);
+  // 쯔꾸르 맵 상태 (5x5)
+  // 0: 빈 바닥, 1: 키오스크, 2: 식단표, 3: 일정표
+  const [playerPos, setPlayerPos] = useState({ x: 2, y: 2 });
+  const [mapData, setMapData] = useState([]);
+  const [logMessage, setLogMessage] = useState("전주 연수원에 입장했습니다! 키오스크 3대를 찾아 태깅하세요.");
+  const [foundKiosks, setFoundKiosks] = useState(0);
+  const [activePopup, setActivePopup] = useState(null); // 'menu' | 'schedule' | null
 
   useEffect(() => {
     setMounted(true);
@@ -96,7 +90,7 @@ function App() {
   const individualRanking = useMemo(() => {
     const mergedPlayers = {};
     players.forEach(player => {
-      const baseName = player.name.replace('(태깅)', '').replace('(미니게임)', '').trim();
+      const baseName = player.name.replace('(태깅)', '').replace('(연수원탐방)', '').trim();
       if (!mergedPlayers[baseName]) {
         mergedPlayers[baseName] = { id: player.id, name: baseName, teamId: player.team_id || player.teamId, score: 0 };
       }
@@ -150,61 +144,96 @@ function App() {
     setTimeout(() => { setShowEasterEgg(false); setTagSuccess(false); setCardPos({ y: 0 }); }, 3500);
   };
 
-  // --- 오른쪽 미니게임 (격자 키오스크 탐색) 로직 ---
-  const startGridGame = () => {
+  // --- 전주 연수원 쯔꾸르 미니게임 로직 ---
+  const startRpgGame = () => {
     if (!gameName.trim()) { alert("이름을 입력해주세요!"); return; }
     
-    // 0~15 중 3개의 난수(키오스크 위치) 생성
-    let positions = [];
-    while(positions.length < 3) {
-      let r = Math.floor(Math.random() * 16);
-      if(positions.indexOf(r) === -1) positions.push(r);
+    // 5x5 그리드 초기화 (0: 빈칸, 1: 키오스크, 2: 식단표, 3: 일정표)
+    // 랜덤하게 키오스크 3개, 식단표 1개, 일정표 1개 배치
+    let newMap = Array(5).fill(0).map(() => Array(5).fill(0));
+    
+    // 키오스크 3개 배치 (플레이어 시작 위치 2,2 제외)
+    let placedKiosks = 0;
+    while(placedKiosks < 3) {
+      let rx = Math.floor(Math.random() * 5);
+      let ry = Math.floor(Math.random() * 5);
+      if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
+        newMap[ry][rx] = 1; // 키오스크
+        placedKiosks++;
+      }
     }
-    setKioskPositions(positions);
-    setRevealedCells(Array(16).fill(false));
-    setFoundCount(0);
-    setTimeLeft(GAME_DURATION);
+
+    // 식단표 배치
+    while(true) {
+      let rx = Math.floor(Math.random() * 5);
+      let ry = Math.floor(Math.random() * 5);
+      if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
+        newMap[ry][rx] = 2; // 식단표
+        break;
+      }
+    }
+
+    // 일정표 배치
+    while(true) {
+      let rx = Math.floor(Math.random() * 5);
+      let ry = Math.floor(Math.random() * 5);
+      if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
+        newMap[ry][rx] = 3; // 일정표
+        break;
+      }
+    }
+
+    setMapData(newMap);
+    setPlayerPos({ x: 2, y: 2 });
+    setFoundKiosks(0);
+    setActivePopup(null);
+    setLogMessage("전주 연수원 로비입니다. 방향키로 이동하세요!");
     setGameStep('playing');
   };
 
-  // 타이머 처리
-  useEffect(() => {
-    if (gameStep === 'playing' && timeLeft > 0) {
-      const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timerId);
-    } else if (gameStep === 'playing' && timeLeft === 0) {
-      endGridGame(foundCount);
-    }
-  }, [gameStep, timeLeft, foundCount]);
+  const movePlayer = (dx, dy) => {
+    if (gameStep !== 'playing' || activePopup) return;
+    
+    let newX = Math.max(0, Math.min(4, playerPos.x + dx));
+    let newY = Math.max(0, Math.min(4, playerPos.y + dy));
+    setPlayerPos({ x: newX, y: newY });
 
-  const handleCellClick = (index) => {
-    if (revealedCells[index] || gameStep !== 'playing') return;
-    if (navigator.vibrate) navigator.vibrate(20);
+    if (navigator.vibrate) navigator.vibrate(15);
 
-    const newRevealed = [...revealedCells];
-    newRevealed[index] = true;
-    setRevealedCells(newRevealed);
+    // 해당 칸 체크
+    const cellType = mapData[newY][newX];
+    if (cellType === 1) {
+      // 키오스크 발견!
+      let updatedMap = [...mapData.map(row => [...row])];
+      updatedMap[newY][newX] = 0; // 방문 처리 (사라짐)
+      setMapData(updatedMap);
+      
+      const nextFound = foundKiosks + 1;
+      setFoundKiosks(nextFound);
+      setLogMessage(`✨ 키오스크 발견! (+1,000원 누적) 현재 ${nextFound}/3대`);
 
-    if (kioskPositions.includes(index)) {
-      const newFoundCount = foundCount + 1;
-      setFoundCount(newFoundCount);
-      if (newFoundCount === 3) {
-        endGridGame(newFoundCount);
+      if (nextFound === 3) {
+        endRpgGame(3);
       }
+    } else if (cellType === 2) {
+      setActivePopup('menu');
+      setLogMessage("🍲 구내식당 식단표를 확인했습니다.");
+    } else if (cellType === 3) {
+      setActivePopup('schedule');
+      setLogMessage("📅 연수원 교육 일정표를 확인했습니다.");
+    } else {
+      setLogMessage("발걸음을 옮기는 중... (키오스크를 찾아보세요!)");
     }
   };
 
-  const endGridGame = async (finalFoundCount) => {
-    let reward = finalFoundCount * 0.1;
-    let text = finalFoundCount === 3 ? "🎯 퍼펙트! 모두 찾았어요!" : `✨ ${finalFoundCount}개의 키오스크 발견!`;
-    if(finalFoundCount === 0) text = "😢 하나도 찾지 못했어요.";
-
-    setGameResult({ text, reward, count: finalFoundCount });
+  const endRpgGame = async (count) => {
+    let reward = count * 0.1;
     setGameStep('result');
+    setLogMessage(`🎉 연수원 탐방 완료! 총 ${count}대 발견으로 ${count * 1000}원이 기부되었습니다.`);
 
     if (reward > 0 && window.supabaseClient) {
       await window.supabaseClient.from('players').insert([{
-        name: `${gameName}(미니게임)`,
+        name: `${gameName}(연수원탐방)`,
         team_id: gameTeam,
         score: reward
       }]);
@@ -218,7 +247,7 @@ function App() {
     <div className="w-screen max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col shadow-2xl relative font-sans text-gray-800 overflow-x-hidden">
       <style>{style}</style>
       
-      {/* 1. 왼쪽 이스터에그 드래그 모달 (유지) */}
+      {/* 1. 왼쪽 이스터에그 드래그 모달 */}
       {showEasterEgg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center py-20 touch-none">
           <button onClick={() => { setShowEasterEgg(false); setCardPos({y:0}); setTagSuccess(false); }} className="absolute top-6 right-6 text-white text-2xl font-bold opacity-70 hover:opacity-100">✕</button>
@@ -265,16 +294,16 @@ function App() {
         </div>
       )}
 
-      {/* 2. 오른쪽 미니게임 모달 (격자 키오스크 탐색 게임) */}
+      {/* 2. 오른쪽 미니게임 모달 (전주 연수원 쯔꾸르 모험) */}
       {showGameModal && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <button onClick={() => { setShowGameModal(false); setGameStep('ready'); }} className="absolute top-6 right-6 text-white text-2xl font-bold opacity-70 hover:opacity-100">✕</button>
+          <button onClick={() => { setShowGameModal(false); setGameStep('ready'); setActivePopup(null); }} className="absolute top-6 right-6 text-white text-2xl font-bold opacity-70 hover:opacity-100">✕</button>
 
-          <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center">
-            <h2 className="text-base font-black text-[#1428A0] mb-1 flex items-center gap-1.5">
-              <MapPin className="w-5 h-5" /> 숨은 키오스크 찾기
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-2xl flex flex-col items-center relative overflow-hidden">
+            <h2 className="text-sm font-black text-[#1428A0] mb-1 flex items-center gap-1.5">
+              <Compass className="w-4 h-4" /> 전주 연수원 탐방 모험
             </h2>
-            <p className="text-xs text-gray-400 mb-6 text-center">식당, 로비, 산책로에 숨겨진 3대를 찾으세요!</p>
+            <p className="text-[11px] text-gray-400 mb-4 text-center">방향키로 이동해 키오스크 3대를 찾으세요!</p>
 
             {gameStep === 'ready' && (
               <div className="w-full flex flex-col gap-3">
@@ -288,67 +317,96 @@ function App() {
                   <label className="block text-[10px] font-bold text-gray-400 mb-1">참가자 이름</label>
                   <input type="text" placeholder="이름을 입력하세요" value={gameName} onChange={(e) => setGameName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:border-[#1428A0]" maxLength={10} />
                 </div>
-                <button onClick={startGridGame} className="w-full bg-[#1428A0] text-white font-bold rounded-xl py-3 text-xs shadow-md mt-3 hover:bg-blue-900 transition-colors">
-                  탐색 시작하기 (7초)
+                <button onClick={startRpgGame} className="w-full bg-[#1428A0] text-white font-bold rounded-xl py-3 text-xs shadow-md mt-2 hover:bg-blue-900 transition-colors">
+                  연수원 입장하기
                 </button>
               </div>
             )}
 
             {gameStep === 'playing' && (
-              <div className="w-full flex flex-col items-center my-2">
-                {/* 상태 표시 바 */}
-                <div className="w-full flex justify-between items-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 mb-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-gray-400 font-bold">남은 시간</span>
-                    <span className={`text-sm font-black ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-[#1428A0]'}`}>{timeLeft}초</span>
-                  </div>
-                  <div className="flex flex-col text-right">
-                    <span className="text-[10px] text-gray-400 font-bold">발견한 키오스크</span>
-                    <span className="text-sm font-black text-pink-500">{foundCount} / 3</span>
-                  </div>
+              <div className="w-full flex flex-col items-center">
+                {/* 상단 정보창 */}
+                <div className="w-full flex justify-between items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 mb-3 text-xs">
+                  <span className="font-bold text-gray-600">찾은 키오스크: <span className="text-pink-500">{foundKiosks} / 3</span></span>
+                  <span className="text-[10px] text-gray-400">전주 연수원 본관</span>
                 </div>
 
-                {/* 4x4 격자 맵 */}
-                <div className="grid grid-cols-4 gap-2 w-full max-w-[260px]">
-                  {revealedCells.map((isRevealed, index) => {
-                    const isKiosk = kioskPositions.includes(index);
-                    return (
-                      <div 
-                        key={index} 
-                        onClick={() => handleCellClick(index)}
-                        className={`aspect-square rounded-xl flex items-center justify-center text-xl transition-all duration-200 select-none ${!isRevealed ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer shadow-sm active:scale-95 border-b-4 border-gray-200' : isKiosk ? 'bg-pink-100 border-2 border-pink-400 grid-cell-pop shadow-inner' : 'bg-gray-50 border border-gray-100 opacity-60'}`}
-                      >
-                        {!isRevealed ? (
-                          <span className="text-gray-300 font-bold text-lg">?</span>
-                        ) : isKiosk ? (
-                          <Heart className="w-8 h-8 text-pink-500 fill-current animate-bounce" />
-                        ) : (
-                          <span className="text-gray-300 text-sm">👣</span>
-                        )}
-                      </div>
-                    );
-                  })}
+                {/* 5x5 맵 렌더링 */}
+                <div className="grid grid-cols-5 gap-1.5 bg-gray-100 p-2 rounded-xl border border-gray-200 mb-3">
+                  {mapData.map((row, y) => 
+                    row.map((cell, x) => {
+                      const isPlayer = playerPos.x === x && playerPos.y === y;
+                      return (
+                        <div key={`${x}-${y}`} className="w-11 h-11 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm border border-gray-100 relative">
+                          {isPlayer ? (
+                            <span className="animate-bounce">🧑‍💼</span>
+                          ) : cell === 1 ? (
+                            <span className="opacity-30 text-xs">🏦</span> /* 숨겨진 키오스크 잔상 */
+                          ) : cell === 2 ? (
+                            <span className="text-sm" title="식단표">🍲</span>
+                          ) : cell === 3 ? (
+                            <span className="text-sm" title="일정표">📅</span>
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-100"></span>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* 하단 로그 메시지창 */}
+                <div className="w-full bg-blue-50/60 border border-blue-100 rounded-lg p-2 mb-3 text-center min-h-[38px] flex items-center justify-center">
+                  <p className="text-[11px] text-[#1428A0] font-medium">{logMessage}</p>
+                </div>
+
+                {/* 쯔꾸르 방향키 패드 (D-Pad) */}
+                <div className="grid grid-cols-3 gap-1 w-36">
+                  <div></div>
+                  <button onClick={() => movePlayer(0, -1)} className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-bold py-2 rounded-lg text-sm shadow">▲</button>
+                  <div></div>
+                  <button onClick={() => movePlayer(-1, 0)} className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-bold py-2 rounded-lg text-sm shadow">◀</button>
+                  <button onClick={() => movePlayer(0, 1)} className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-bold py-2 rounded-lg text-sm shadow">▼</button>
+                  <button onClick={() => movePlayer(1, 0)} className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700 font-bold py-2 rounded-lg text-sm shadow">▶</button>
                 </div>
               </div>
             )}
 
-            {gameStep === 'result' && gameResult && (
-              <div className="w-full flex flex-col items-center my-4 animate-receipt">
-                <span className="text-4xl mb-2">{gameResult.count === 3 ? '🎉' : gameResult.count > 0 ? '👏' : '💦'}</span>
-                <h3 className="font-black text-gray-800 text-base mb-1">{gameResult.text}</h3>
-                <p className="text-xs text-gray-500 mb-6">{gameName}님의 기부가 성공적으로 반영되었습니다!</p>
-                <div className="flex gap-2 w-full mb-2">
-                  <div className="flex-1 bg-gray-50 rounded p-2 text-center border border-gray-100">
-                    <div className="text-[10px] text-gray-400 mb-1">발견 개수</div>
-                    <div className="font-bold text-[#1428A0] text-sm">{gameResult.count}개</div>
-                  </div>
-                  <div className="flex-1 bg-gray-50 rounded p-2 text-center border border-gray-100">
-                    <div className="text-[10px] text-gray-400 mb-1">기부 금액</div>
-                    <div className="font-bold text-pink-500 text-sm">{(gameResult.count * 1000).toLocaleString()}원</div>
-                  </div>
-                </div>
-                <button onClick={() => { setShowGameModal(false); setGameStep('ready'); }} className="w-full bg-gray-100 text-gray-700 font-bold rounded-xl py-3 text-xs hover:bg-gray-200 transition-colors mt-2">
+            {gameStep === 'result' && (
+              <div className="w-full flex flex-col items-center my-2 animate-receipt">
+                <span className="text-4xl mb-2">🎉</span>
+                <h3 className="font-black text-gray-800 text-base mb-1">탐방 미션 성공!</h3>
+                <p className="text-xs text-gray-500 mb-4">{gameName}님의 이름으로 총 3,000원이 기부되었습니다.</p>
+                <button onClick={() => { setShowGameModal(false); setGameStep('ready'); }} className="w-full bg-[#1428A0] text-white font-bold rounded-xl py-3 text-xs shadow hover:bg-blue-900 transition-colors">
                   확인
+                </button>
+              </div>
+            )}
+
+            {/* 식단표 / 일정표 팝업 모달 */}
+            {activePopup && (
+              <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col p-6 items-center justify-center animate-receipt">
+                {activePopup === 'menu' ? (
+                  <>
+                    <h3 className="font-black text-[#1428A0] text-base mb-2">🍲 오늘의 전주 연수원 식단표</h3>
+                    <div className="w-full bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1.5 mb-4 font-mono">
+                      <p>• <b>[조식]</b> 전주식 콩나물국밥 & 수란</p>
+                      <p>• <b>[중식]</b> 전통 돌솥 비빔밥 & 묵국수</p>
+                      <p>• <b>[석식]</b> 흑돼지 김치찌개 & 떡갈비</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-black text-[#1428A0] text-base mb-2">📅 오늘의 연수 일정표</h3>
+                    <div className="w-full bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1.5 mb-4 font-mono">
+                      <p>• <b>09:00</b> 오리엔테이션 및 입교식</p>
+                      <p>• <b>13:00</b> 일상 속 나눔 키오스크 체험</p>
+                      <p>• <b>16:00</b> 팀별 프로젝트 및 발표</p>
+                    </div>
+                  </>
+                )}
+                <button onClick={() => setActivePopup(null)} className="w-full bg-[#1428A0] text-white font-bold py-2.5 rounded-xl text-xs">
+                  닫기 (계속 탐방하기)
                 </button>
               </div>
             )}
@@ -362,19 +420,22 @@ function App() {
           <div onClick={() => setShowEasterEgg(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowLeft className="text-white w-5 h-5" />
           </div>
+          
           <div className="flex-1 bg-white flex flex-col items-center justify-center px-2">
             <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5 uppercase">SAMSUNG NANUM KIOSK</span>
             <h1 className="text-lg font-black text-[#1428A0] flex items-center gap-1.5 whitespace-nowrap">
               삼성 나눔역 <Heart className="w-5 h-5 text-pink-500 fill-current" />
             </h1>
           </div>
+          
           <div onClick={() => setShowGameModal(true)} className="w-14 flex items-center justify-center shrink-0 cursor-pointer active:bg-blue-800 transition-colors">
             <ArrowRight className="text-white w-5 h-5" />
           </div>
         </div>
+        
         <div className="flex justify-between mt-3 px-3 text-[10px] font-bold text-gray-400">
           <span>← 사원증 태깅역</span>
-          <span>키오스크 탐색역 →</span>
+          <span>전주 연수원 탐방 →</span>
         </div>
       </header>
 
@@ -536,3 +597,4 @@ if (typeof ReactDOM !== 'undefined') {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(<App />);
 }
+
