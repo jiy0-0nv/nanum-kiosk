@@ -146,6 +146,10 @@ function App() {
   const startRpgGame = () => {
     if (!gameName.trim()) { alert("이름을 입력해주세요!"); return; }
     
+    // 0: 빈칸
+    // 1: 숨겨진 키오스크 / 4: 찾은 키오스크
+    // 2: 숨겨진 식단표 / 5: 찾은 식단표
+    // 3: 숨겨진 일정표 / 6: 찾은 일정표
     let newMap = Array(5).fill(0).map(() => Array(5).fill(0));
     
     let placedKiosks = 0;
@@ -153,7 +157,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 1; // 키오스크 (숨김)
+        newMap[ry][rx] = 1;
         placedKiosks++;
       }
     }
@@ -162,7 +166,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 2; // 식단표 (숨김)
+        newMap[ry][rx] = 2;
         break;
       }
     }
@@ -171,7 +175,7 @@ function App() {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 3; // 일정표 (숨김)
+        newMap[ry][rx] = 3;
         break;
       }
     }
@@ -194,26 +198,45 @@ function App() {
     if (navigator.vibrate) navigator.vibrate(15);
 
     const cellType = mapData[newY][newX];
+    let updatedMap = [...mapData.map(row => [...row])];
+    let mapChanged = false;
+
     if (cellType === 1) {
-      let updatedMap = [...mapData.map(row => [...row])];
-      updatedMap[newY][newX] = 0; 
-      setMapData(updatedMap);
-      
+      // 1(숨겨진 키오스크) -> 4(찾은 키오스크)
+      updatedMap[newY][newX] = 4;
+      mapChanged = true;
       const nextFound = foundKiosks + 1;
       setFoundKiosks(nextFound);
       setLogMessage(`✨ 키오스크 발견! (+1,000원 누적) 현재 ${nextFound}/3대`);
 
       if (nextFound === 3) {
-        endRpgGame(3);
+        // 마지막 키오스크 아이콘이 그려질 수 있도록 약간 딜레이 후 종료
+        setTimeout(() => endRpgGame(3), 600);
       }
     } else if (cellType === 2) {
+      // 2(숨겨진 식단표) -> 5(찾은 식단표)
+      updatedMap[newY][newX] = 5;
+      mapChanged = true;
       setActivePopup('menu');
-      setLogMessage("🍲 구내식당 식단표를 확인했습니다.");
+      setLogMessage("🍲 구내식당 식단표를 발견했습니다.");
     } else if (cellType === 3) {
+      // 3(숨겨진 일정표) -> 6(찾은 일정표)
+      updatedMap[newY][newX] = 6;
+      mapChanged = true;
       setActivePopup('schedule');
-      setLogMessage("📅 연수원 교육 일정표를 확인했습니다.");
+      setLogMessage("📅 연수원 교육 일정표를 발견했습니다.");
+    } else if (cellType === 4) {
+      setLogMessage("이미 찾은 나눔 키오스크입니다.");
+    } else if (cellType === 5) {
+      setActivePopup('menu');
+    } else if (cellType === 6) {
+      setActivePopup('schedule');
     } else {
       setLogMessage("발걸음을 옮기는 중... (키오스크를 찾아보세요!)");
+    }
+
+    if (mapChanged) {
+      setMapData(updatedMap);
     }
   };
 
@@ -322,17 +345,23 @@ function App() {
                   <span className="text-[10px] text-gray-400">전주 연수원 본관</span>
                 </div>
 
-                {/* 5x5 맵 렌더링 (키오스크/식단표/일정표 위치 완벽 숨김) */}
+                {/* 5x5 맵 렌더링 */}
                 <div className="grid grid-cols-5 gap-1.5 bg-gray-100 p-2 rounded-xl border border-gray-200 mb-3">
                   {mapData.map((row, y) => 
                     row.map((cell, x) => {
                       const isPlayer = playerPos.x === x && playerPos.y === y;
                       return (
-                        <div key={`${x}-${y}`} className="w-11 h-11 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm border border-gray-100 relative">
+                        <div key={`${x}-${y}`} className="w-11 h-11 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm border border-gray-100 relative overflow-hidden">
                           {isPlayer ? (
-                            <span className="animate-bounce">🧑‍💼</span>
+                            <span className="animate-bounce z-10">🧑‍💼</span>
+                          ) : cell === 4 ? (
+                            <span className="text-pink-500 animate-pulse"><Heart className="w-6 h-6 fill-current" /></span>
+                          ) : cell === 5 ? (
+                            <span className="text-xl">🍲</span>
+                          ) : cell === 6 ? (
+                            <span className="text-xl">📅</span>
                           ) : (
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-100"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-200"></span>
                           )}
                         </div>
                       );
