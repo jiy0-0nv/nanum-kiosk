@@ -62,8 +62,6 @@ function App() {
   const [gameName, setGameName] = useState('');
   const [gameTeam, setGameTeam] = useState('B');
   
-  // 쯔꾸르 맵 상태 (5x5)
-  // 0: 빈 바닥, 1: 키오스크, 2: 식단표, 3: 일정표
   const [playerPos, setPlayerPos] = useState({ x: 2, y: 2 });
   const [mapData, setMapData] = useState([]);
   const [logMessage, setLogMessage] = useState("전주 연수원에 입장했습니다! 키오스크 3대를 찾아 태깅하세요.");
@@ -148,37 +146,32 @@ function App() {
   const startRpgGame = () => {
     if (!gameName.trim()) { alert("이름을 입력해주세요!"); return; }
     
-    // 5x5 그리드 초기화 (0: 빈칸, 1: 키오스크, 2: 식단표, 3: 일정표)
-    // 랜덤하게 키오스크 3개, 식단표 1개, 일정표 1개 배치
     let newMap = Array(5).fill(0).map(() => Array(5).fill(0));
     
-    // 키오스크 3개 배치 (플레이어 시작 위치 2,2 제외)
     let placedKiosks = 0;
     while(placedKiosks < 3) {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 1; // 키오스크
+        newMap[ry][rx] = 1; // 키오스크 (숨김)
         placedKiosks++;
       }
     }
 
-    // 식단표 배치
     while(true) {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 2; // 식단표
+        newMap[ry][rx] = 2; // 식단표 (숨김)
         break;
       }
     }
 
-    // 일정표 배치
     while(true) {
       let rx = Math.floor(Math.random() * 5);
       let ry = Math.floor(Math.random() * 5);
       if (!(rx === 2 && ry === 2) && newMap[ry][rx] === 0) {
-        newMap[ry][rx] = 3; // 일정표
+        newMap[ry][rx] = 3; // 일정표 (숨김)
         break;
       }
     }
@@ -200,12 +193,10 @@ function App() {
 
     if (navigator.vibrate) navigator.vibrate(15);
 
-    // 해당 칸 체크
     const cellType = mapData[newY][newX];
     if (cellType === 1) {
-      // 키오스크 발견!
       let updatedMap = [...mapData.map(row => [...row])];
-      updatedMap[newY][newX] = 0; // 방문 처리 (사라짐)
+      updatedMap[newY][newX] = 0; 
       setMapData(updatedMap);
       
       const nextFound = foundKiosks + 1;
@@ -331,7 +322,7 @@ function App() {
                   <span className="text-[10px] text-gray-400">전주 연수원 본관</span>
                 </div>
 
-                {/* 5x5 맵 렌더링 */}
+                {/* 5x5 맵 렌더링 (키오스크/식단표/일정표 위치 완벽 숨김) */}
                 <div className="grid grid-cols-5 gap-1.5 bg-gray-100 p-2 rounded-xl border border-gray-200 mb-3">
                   {mapData.map((row, y) => 
                     row.map((cell, x) => {
@@ -340,12 +331,6 @@ function App() {
                         <div key={`${x}-${y}`} className="w-11 h-11 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm border border-gray-100 relative">
                           {isPlayer ? (
                             <span className="animate-bounce">🧑‍💼</span>
-                          ) : cell === 1 ? (
-                            <span className="opacity-30 text-xs">🏦</span> /* 숨겨진 키오스크 잔상 */
-                          ) : cell === 2 ? (
-                            <span className="text-sm" title="식단표">🍲</span>
-                          ) : cell === 3 ? (
-                            <span className="text-sm" title="일정표">📅</span>
                           ) : (
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-100"></span>
                           )}
