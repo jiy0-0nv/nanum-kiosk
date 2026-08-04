@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // GitHub Pages에서 하위 경로로 들어왔을 때 메인 index로 리다이렉트 시켜주는 트릭
+    var pathSegmentsToKeep = 1; // 내 레포지토리 이름이 1개라면 1
+    var l = window.location;
+    if (l.pathname.split('/')[1] === 'leaderboard') {
+      // leaderboard 폴더 안에 있는 index.html로 직접 연결
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/leaderboard/index.html'
+      );
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
+
