@@ -426,18 +426,19 @@ function App() {
                   <>
                     <h3 className="font-black text-[#1428A0] text-base mb-2">🍲 오늘의 전주 연수원 식단표</h3>
                     <div className="w-full bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1.5 mb-4 font-mono">
-                      <p>• <b>[조식]</b> 전주식 콩나물국밥 & 수란</p>
-                      <p>• <b>[중식]</b> 전통 돌솥 비빔밥 & 묵국수</p>
-                      <p>• <b>[석식]</b> 흑돼지 김치찌개 & 떡갈비</p>
+                      <p>• <b>[조식]</b> 순두부찌개 & 비엔나야채볶음 / 크로와상샌드위치 & 미니딸기도넛 & 오믈렛</p>
+                      <p>• <b>[중식]</b> 비빔냉면 & 캠핑바베큐구이 & 김가루주먹밥</p>
+                      <p>• <b>[석식]</b> 푸팟퐁커리 & 새우볼꼬치 & 미소미역국</p>
                     </div>
                   </>
                 ) : (
                   <>
                     <h3 className="font-black text-[#1428A0] text-base mb-2">📅 오늘의 연수 일정표</h3>
                     <div className="w-full bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1.5 mb-4 font-mono">
-                      <p>• <b>09:00</b> 오리엔테이션 및 입교식</p>
-                      <p>• <b>13:00</b> 일상 속 나눔 키오스크 체험</p>
-                      <p>• <b>16:00</b> 팀별 프로젝트 및 발표</p>
+                      <p>• <b>08:00</b> CSR Fair 준비</p>
+                      <p>• <b>12:00</b> 점심식사</p>
+                      <p>• <b>13:00</b> CSR Fair</p>
+                      <p>• <b>17:30</b> Daily Reflection</p>
                     </div>
                   </>
                 )}
